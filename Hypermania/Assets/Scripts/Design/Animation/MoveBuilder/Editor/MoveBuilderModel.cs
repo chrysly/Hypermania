@@ -59,8 +59,7 @@ namespace Design.Animation.MoveBuilder.Editors
 
             Data.Clip = Clip;
 
-            float length = Mathf.Max(0.0001f, Clip.length);
-            int totalTicks = Mathf.Max(1, Mathf.CeilToInt(length * Mathf.Max(1, tps)));
+            int totalTicks = Mathf.CeilToInt(Clip.length * Mathf.Max(1, tps)) + 1;
             Data.EnsureSize(totalTicks);
 
             CurrentTick = Mathf.Clamp(CurrentTick, 0, totalTicks - 1);

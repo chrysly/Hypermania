@@ -23,6 +23,9 @@ namespace Design.Animation.Keyframing
         private GameObject[] _spriteChildren;
 
         [SerializeField]
+        private GameObject[] _oneOffChildren;
+
+        [SerializeField]
         private GameObject[] _ikChildren;
 
         public AnimationClip Clip => _clip;
@@ -52,6 +55,36 @@ namespace Design.Animation.Keyframing
                         includeScale: true,
                         includeEuler: true
                     );
+                }
+            }
+
+            foreach (var oneOffChild in _oneOffChildren)
+            {
+                foreach (Transform t in oneOffChild.GetComponentsInChildren<Transform>(true))
+                {
+                    AddTransformKeysAtTime(
+                        _clip,
+                        animRoot,
+                        t,
+                        0f,
+                        includePosition: true,
+                        includeScale: true,
+                        includeEuler: true
+                    );
+
+                    var sr = t.GetComponent<SpriteRenderer>();
+                    if (sr != null)
+                    {
+                        AddFloatKeyAtTime(
+                            clip: _clip,
+                            animRoot: animRoot,
+                            componentType: typeof(SpriteRenderer),
+                            targetTransform: t,
+                            propertyName: "m_SortingOrder",
+                            time: 0f,
+                            value: sr.sortingOrder
+                        );
+                    }
                 }
             }
 

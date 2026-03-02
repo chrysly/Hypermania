@@ -216,7 +216,7 @@ namespace Design.Animation.MoveBuilder.Editors
             }
 
             float time = model.CurrentTick / (float)Mathf.Max(1, tps);
-            time = Mathf.Clamp(time, 0f, Mathf.Max(0f, model.Clip.length - 0.00001f));
+            time = Mathf.Clamp(time, 0f, Mathf.Max(0f, 1f));
 
             AnimationMode.BeginSampling();
             AnimationMode.SampleAnimationClip(_previewGO, model.Clip, time);
