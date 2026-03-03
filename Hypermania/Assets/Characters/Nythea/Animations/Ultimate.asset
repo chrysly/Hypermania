@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be373a019aa534843a9f8df3be036a28, type: 3}
   m_Name: Ultimate
   m_EditorClassIdentifier: 
-  Clip: {fileID: 0}
+  Clip: {fileID: 7400000, guid: 2a03441b9f4490c6190ff3c233ae82a2, type: 2}
   Frames:
   - Boxes: []
     FrameType: 0
