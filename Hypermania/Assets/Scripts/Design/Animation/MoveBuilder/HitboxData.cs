@@ -147,10 +147,15 @@ namespace Design.Animation
         public int TotalTicks => Frames.Count;
         public List<FrameData> Frames = new List<FrameData>();
 
-        public bool EnsureSize(AnimationClip clip)
+        public bool BindToClip(AnimationClip clip)
         {
-            int totalTicks = Mathf.CeilToInt(clip.length * GameManager.TPS) + 1;
             bool changed = false;
+            if (Clip != clip)
+            {
+                Clip = clip;
+                changed = true;
+            }
+            int totalTicks = Mathf.CeilToInt(clip.length * GameManager.TPS) + 1;
             if (totalTicks < 1)
             {
                 throw new InvalidOperationException("total ticks must be >= 1");

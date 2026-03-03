@@ -12,5 +12,127 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be373a019aa534843a9f8df3be036a28, type: 3}
   m_Name: ForwardAirDash
   m_EditorClassIdentifier: 
-  Clip: {fileID: 0}
-  Frames: []
+  Clip: {fileID: 7400000, guid: 252efafcc2dff816986b751c1191ddf1, type: 2}
+  Frames:
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0

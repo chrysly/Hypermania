@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be373a019aa534843a9f8df3be036a28, type: 3}
   m_Name: SpecialAerial
   m_EditorClassIdentifier: 
-  Clip: {fileID: 0}
+  Clip: {fileID: 7400000, guid: e06139487fc3f44a991da5145f0aa9ff, type: 2}
   Frames:
   - Boxes: []
     FrameType: 0

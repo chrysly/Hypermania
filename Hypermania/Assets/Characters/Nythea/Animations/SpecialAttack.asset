@@ -12,7 +12,127 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be373a019aa534843a9f8df3be036a28, type: 3}
   m_Name: SpecialAttack
   m_EditorClassIdentifier: 
-  Clip: {fileID: 0}
+  Clip: {fileID: 7400000, guid: 2a6b6386e049b811d9b9a50fe5d55d3a, type: 2}
   Frames:
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
+  - Boxes: []
+    FrameType: 0
   - Boxes: []
     FrameType: 0
