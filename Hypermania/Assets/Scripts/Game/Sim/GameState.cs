@@ -291,6 +291,7 @@ namespace Game.Sim
         {
             for (int i = 0; i < Manias.Length; i++)
             {
+                ManiaEvents = new List<ManiaEvent>(); 
                 Manias[i].Tick(RealFrame, inputs[i].input, ManiaEvents);
 
                 foreach (ManiaEvent ev in ManiaEvents)
