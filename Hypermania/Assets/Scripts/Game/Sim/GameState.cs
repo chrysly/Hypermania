@@ -68,7 +68,7 @@ namespace Game.Sim
         public sfloat HypeMeter;
         public GameMode GameMode;
         public int HitstopFramesRemaining;
-        public List<ManiaEvent> ManiaEvents; 
+        public List<List<ManiaEvent>> ManiaEvents; 
 
         /// <summary>
         /// Use this static builder instead of the constructor for creating new GameStates. This is because MemoryPack,
@@ -87,13 +87,14 @@ namespace Game.Sim
                 RoundEnd = new Frame(options.Global.RoundTimeTicks),
                 Fighters = new FighterState[options.Players.Length],
                 Manias = new ManiaState[options.Players.Length],
-                ManiaEvents = new List<ManiaEvent>(),
+                ManiaEvents = new List<List<ManiaEvent>>(),
                 HitstopFramesRemaining = 0,
                 HypeMeter = (sfloat)0f,
                 GameMode = GameMode.Countdown,
             };
             for (int i = 0; i < options.Players.Length; i++)
             {
+                state.ManiaEvents.Add(new List<ManiaEvent>());
                 sfloat xPos = (i - ((sfloat)options.Players.Length - 1) / 2) * 4;
                 FighterFacing facing = xPos > 0 ? FighterFacing.Left : FighterFacing.Right;
                 state.Fighters[i] = FighterState.Create(i, options, new SVector2(xPos, sfloat.Zero), facing, 3);
@@ -105,12 +106,14 @@ namespace Game.Sim
                         MissHalfRange = options.Global.Input.BeatCancelWindow + 3,
                     }
                 );
+                
             }
             return state;
         }
 
         private void DoRoundEnd(GameOptions options, Span<GameInput> outInputs)
         {
+            ManiaEvents = new List<List<ManiaEvent>>();
             for (int i = 0; i < Fighters.Length; i++)
             {
                 Fighters[i].Health = options.Players[i].Character.Health;
@@ -118,13 +121,12 @@ namespace Game.Sim
                 FighterFacing facing = xPos > 0 ? FighterFacing.Left : FighterFacing.Right;
                 Fighters[i].RoundReset(options.Players[i].Character, new SVector2(xPos, sfloat.Zero), facing);
                 outInputs[i] = GameInput.None;
+                ManiaEvents.Add(new List<ManiaEvent>());
             }
             HypeMeter = (sfloat)0.0f;
             RoundStart = SimFrame;
             GameMode = GameMode.Countdown;
-            ManiaEvents = new List<ManiaEvent>(); 
         }
-
         private void DoCountdown(GameOptions options, Span<GameInput> outInputs)
         {
             if (SimFrame - RoundStart >= options.Global.RoundCountdownTicks) // Added an attribute to config for countdown.
@@ -276,7 +278,10 @@ namespace Game.Sim
             {
                 Fighters[i].FaceTowards(Fighters[i ^ 1].Position);
             }
-            ManiaEvents.Clear(); 
+            // ManiaEvents.Clear();
+            for (int i = 0; i < Fighters.Length; i++) {
+                // ManiaEvents[i].RemoveAt(0);
+            }
         }
 
         public bool FightersDead()
@@ -295,10 +300,9 @@ namespace Game.Sim
         {
             for (int i = 0; i < Manias.Length; i++)
             {
-                
-                Manias[i].Tick(RealFrame, inputs[i].input, ManiaEvents);
+                Manias[i].Tick(RealFrame, inputs[i].input, ManiaEvents[i]);
 
-                foreach (ManiaEvent ev in ManiaEvents)
+                foreach (ManiaEvent ev in ManiaEvents[i])
                 {
                     switch (ev.Kind)
                     {

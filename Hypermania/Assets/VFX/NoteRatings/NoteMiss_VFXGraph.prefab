@@ -11,8 +11,7 @@ GameObject:
   - component: {fileID: 7742469708220182145}
   - component: {fileID: 8394553318338251894}
   - component: {fileID: 3897339362938079845}
-  - component: {fileID: -4026756563817253209}
-  - component: {fileID: -4055988127412401506}
+  - component: {fileID: 3747860847231942020}
   m_Layer: 0
   m_Name: NoteMiss_VFXGraph
   m_TagString: Untagged
@@ -29,8 +28,8 @@ Transform:
   m_GameObject: {fileID: 1668625296933987182}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.643, y: -0.086, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -43,12 +42,12 @@ VisualEffect:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1668625296933987182}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 6b6f4764216725b70a023f4949b0e204, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: e96fe2f9cff62347e85f84e12f00adef, type: 3}
   m_InitialEventName: OnPlay
   m_InitialEventNameOverriden: 0
-  m_StartSeed: 0
+  m_StartSeed: 251
   m_ResetSeedOnPlay: 0
-  m_AllowInstancing: 0
+  m_AllowInstancing: 1
   m_ResourceVersion: 1
   m_PropertySheet:
     m_Float:
@@ -97,7 +96,7 @@ VFXRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
-  m_RenderingLayerMask: 1
+  m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_StaticBatchInfo:
     firstSubMesh: 0
@@ -119,29 +118,7 @@ VFXRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!95 &-4026756563817253209
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1668625296933987182}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
---- !u!114 &-4055988127412401506
+--- !u!114 &3747860847231942020
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
