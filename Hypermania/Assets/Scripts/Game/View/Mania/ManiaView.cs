@@ -61,7 +61,14 @@ namespace Game.View.Mania
         {
             Config.Validate();
         }
-        public void RollbackRender(in GameState state, VfxManager vfx, SfxManager sfx, List<ManiaEvent> maniaEvents, FighterState fighterState)
+
+        public void RollbackRender(
+            in GameState state,
+            VfxManager vfx,
+            SfxManager sfx,
+            List<ManiaEvent> maniaEvents,
+            FighterState fighterState
+        )
         {
             // gather all sfx from states in the current rollback process
             if (_rollbackStart == Frame.NullFrame)
@@ -70,19 +77,26 @@ namespace Game.View.Mania
             }
             DoViewEvents(state, vfx, sfx, maniaEvents, fighterState);
         }
-        public void DoViewEvents(in GameState state, VfxManager vfx, SfxManager sfx, List<ManiaEvent> maniaEvents, FighterState fighterState)
+
+        public void DoViewEvents(
+            in GameState state,
+            VfxManager vfx,
+            SfxManager sfx,
+            List<ManiaEvent> maniaEvents,
+            FighterState fighterState
+        )
         {
-            for (int i = 0; i < maniaEvents.Count; i++) {
+            for (int i = 0; i < maniaEvents.Count; i++)
+            {
                 // // TODO DELETE THESE
-                 float x = Config.Anchors[2].localPosition.x;
-                 float y = Config.Anchors[2].localPosition.y;
+                float x = Config.Anchors[2].localPosition.x;
+                float y = Config.Anchors[2].localPosition.y;
                 if (maniaEvents[i].Kind == ManiaEventKind.Hit)
                 {
-                    
                     sfx.AddDesired(
                         new ViewEvent<SfxEvent>
                         {
-                            Event = new SfxEvent { Kind = SfxKind.comboGood, },
+                            Event = new SfxEvent { Kind = SfxKind.comboGood },
                             StartFrame = state.RealFrame,
                             Hash = i,
                         }
@@ -91,14 +105,18 @@ namespace Game.View.Mania
                     vfx.AddDesired(
                         new ViewEvent<VfxEvent>
                         {
-                            Event = new VfxEvent { Kind = VfxKind.NoteHit, Position = new Vector2((float) fighterState.Position.x, (float) fighterState.Position.y)},
+                            Event = new VfxEvent
+                            {
+                                Kind = VfxKind.NoteHit,
+                                Position = new Vector2((float)fighterState.Position.x, (float)fighterState.Position.y),
+                            },
                             StartFrame = state.RealFrame,
                             Hash = i,
-                            
                         }
                     );
                 }
-                else if (maniaEvents[i].Kind == ManiaEventKind.Missed) {
+                else if (maniaEvents[i].Kind == ManiaEventKind.Missed)
+                {
                     // if (maniaEvents[i].Offset > 50) { // test value change later
                     //     sfx.AddDesired(
                     //     new ViewEvent<SfxEvent>
@@ -109,7 +127,7 @@ namespace Game.View.Mania
                     //     }
                     // );
                     // } else {
-                        sfx.AddDesired(
+                    sfx.AddDesired(
                         new ViewEvent<SfxEvent>
                         {
                             Event = new SfxEvent { Kind = SfxKind.comboMiss },
@@ -117,20 +135,26 @@ namespace Game.View.Mania
                             Hash = i,
                         }
                     );
-                    
+
                     vfx.AddDesired(
                         new ViewEvent<VfxEvent>
                         {
-                            Event = new VfxEvent { Kind = VfxKind.NoteMiss, Position = new Vector3((float) fighterState.Position.x, (float) fighterState.Position.y, 0)},
+                            Event = new VfxEvent
+                            {
+                                Kind = VfxKind.NoteMiss,
+                                Position = new Vector3(
+                                    (float)fighterState.Position.x,
+                                    (float)fighterState.Position.y,
+                                    0
+                                ),
+                            },
                             StartFrame = state.RealFrame,
                             Hash = i,
                         }
                     );
                 }
             }
-            
         }
-            
 
         public void Render(Frame frame, in ManiaState state)
         {

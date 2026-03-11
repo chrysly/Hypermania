@@ -11,7 +11,7 @@ namespace Game.View.Events
         HeavyPunch,
         comboGood,
         comboMiss,
-        comboOk
+        comboOk,
     }
 
     [Serializable]

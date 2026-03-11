@@ -65,7 +65,7 @@ namespace Game.Sim
         public sfloat HypeMeter;
         public GameMode GameMode;
         public int HitstopFramesRemaining;
-        public List<List<ManiaEvent>> ManiaEvents; 
+        public List<List<ManiaEvent>> ManiaEvents;
 
         /// <summary>
         /// Use this static builder instead of the constructor for creating new GameStates. This is because MemoryPack,
@@ -103,7 +103,6 @@ namespace Game.Sim
                         MissHalfRange = options.Global.Input.BeatCancelWindow + 3,
                     }
                 );
-                
             }
             return state;
         }
@@ -124,6 +123,7 @@ namespace Game.Sim
             RoundStart = SimFrame;
             GameMode = GameMode.Countdown;
         }
+
         private void DoCountdown(GameOptions options, Span<GameInput> outInputs)
         {
             if (SimFrame - RoundStart >= options.Global.RoundCountdownTicks) // Added an attribute to config for countdown.
@@ -139,7 +139,6 @@ namespace Game.Sim
 
         public void Advance(GameOptions options, (GameInput input, InputStatus status)[] inputs)
         {
-            
             RealFrame += 1;
             if (inputs.Length != options.Players.Length || options.Players.Length != Fighters.Length)
             {
@@ -276,7 +275,8 @@ namespace Game.Sim
                 Fighters[i].FaceTowards(Fighters[i ^ 1].Position);
             }
             // ManiaEvents.Clear();
-            for (int i = 0; i < Fighters.Length; i++) {
+            for (int i = 0; i < Fighters.Length; i++)
+            {
                 // ManiaEvents[i].RemoveAt(0);
             }
         }
