@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Linq;
 using Design.Animation;
 using Design.Configs;
@@ -113,6 +112,7 @@ namespace Game.Sim
                 FighterFacing facing = xPos > 0 ? FighterFacing.Left : FighterFacing.Right;
                 Fighters[i].RoundReset(options.Players[i].Character, new SVector2(xPos, sfloat.Zero), facing);
                 outInputs[i] = GameInput.None;
+                Manias[i].ManiaEvents.Clear();
             }
             HypeMeter = (sfloat)0.0f;
             RoundStart = SimFrame;
@@ -134,10 +134,14 @@ namespace Game.Sim
 
         public void Advance(GameOptions options, (GameInput input, InputStatus status)[] inputs)
         {
-            RealFrame += 1;
             if (inputs.Length != options.Players.Length || options.Players.Length != Fighters.Length)
             {
                 throw new InvalidOperationException("invalid inputs and characters to advance game state with");
+            }
+            RealFrame += 1;
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                Manias[i].ManiaEvents.Clear();
             }
 
             Span<GameInput> remapInputs = stackalloc GameInput[Fighters.Length];
@@ -287,10 +291,9 @@ namespace Game.Sim
         {
             for (int i = 0; i < Manias.Length; i++)
             {
-                List<ManiaEvent> maniaEvents = new List<ManiaEvent>();
-                Manias[i].Tick(RealFrame, inputs[i].input, maniaEvents);
+                Manias[i].Tick(RealFrame, inputs[i].input);
 
-                foreach (ManiaEvent ev in maniaEvents)
+                foreach (ManiaEvent ev in Manias[i].ManiaEvents)
                 {
                     switch (ev.Kind)
                     {
@@ -299,6 +302,10 @@ namespace Game.Sim
                             break;
                         case ManiaEventKind.Hit:
                             outInputs[i].Flags |= ev.Note.HitInput;
+                            break;
+                        case ManiaEventKind.Missed:
+                            GameMode = GameMode.Fighting;
+                            Manias[i].End();
                             break;
                     }
                 }
