@@ -71,6 +71,12 @@ namespace Game.Sim
             || State == CharacterState.SuperAerial
             || State == CharacterState.SpecialAerial;
 
+        public bool IsAerial =>
+            IsAerialAttack
+            || State == CharacterState.Jump
+            || State == CharacterState.PreJump
+            || State == CharacterState.Falling;
+
         public bool IsDash =>
             State == CharacterState.BackAirDash
             || State == CharacterState.ForwardAirDash
@@ -152,29 +158,29 @@ namespace Game.Sim
             }
             HitLocation = SVector2.zero;
             HitProps = new BoxProps();
-            if (Location(options) == FighterLocation.Grounded)
+            if (Location == FighterLocation.Grounded)
             {
                 AirDashCount = 0;
             }
         }
 
-        public FighterLocation Location(GameOptions options)
-        {
-            if (Position.y > options.Global.GroundY)
-            {
-                return FighterLocation.Airborne;
-            }
-            return FighterLocation.Grounded;
-        }
+        public bool OnGround(GameOptions options) => Position.y > options.Global.GroundY ? false : true;
 
-        public FighterAttackLocation AttackLocation(GameOptions options)
+        public FighterLocation Location => IsAerial ? FighterLocation.Airborne : FighterLocation.Grounded;
+
+        public FighterAttackLocation AttackLocation
         {
-            FighterLocation loc = Location(options);
-            if (loc == FighterLocation.Airborne)
+            get
             {
-                return FighterAttackLocation.Aerial;
+                FighterLocation loc = Location;
+                if (loc == FighterLocation.Airborne)
+                {
+                    return FighterAttackLocation.Aerial;
+                }
+                return InputH.IsHeld(InputFlags.Down)
+                    ? FighterAttackLocation.Crouching
+                    : FighterAttackLocation.Standing;
             }
-            return InputH.IsHeld(InputFlags.Down) ? FighterAttackLocation.Crouching : FighterAttackLocation.Standing;
         }
 
         public void SetState(CharacterState nextState, Frame start, Frame end, bool forceChange = false)
@@ -210,7 +216,7 @@ namespace Game.Sim
             }
         }
 
-        public void TickStateMachine(Frame frame)
+        public void TickStateMachine(Frame frame, GameOptions options)
         {
             // if animation ends, switch back to idle
             if (frame >= StateEnd)
@@ -227,7 +233,14 @@ namespace Game.Sim
                     SetState(CharacterState.Jump, frame, Frame.Infinity);
                     return;
                 }
-                SetState(CharacterState.Idle, frame, Frame.Infinity);
+                if (OnGround(options))
+                {
+                    SetState(CharacterState.Idle, frame, Frame.Infinity);
+                }
+                else
+                {
+                    SetState(CharacterState.Falling, frame, Frame.Infinity);
+                }
             }
         }
 
@@ -265,7 +278,7 @@ namespace Game.Sim
                     {
                         StoredJumpVelocity.x = 0;
                     }
-                    Velocity.x = 0;
+                    Velocity = SVector2.zero;
                     SetState(
                         CharacterState.PreJump,
                         frame,
@@ -419,14 +432,13 @@ namespace Game.Sim
                 startFrame += frameDiff;
             }
 
-            var attackLocation = AttackLocation(options);
             foreach (((var loc, var input), var state) in _attackDictionary)
             {
-                if (InputH.PressedRecently(input, options.Global.Input.InputBufferWindow) && attackLocation == loc)
+                if (InputH.PressedRecently(input, options.Global.Input.InputBufferWindow) && AttackLocation == loc)
                 {
                     if (
-                        attackLocation == FighterAttackLocation.Standing
-                        || attackLocation == FighterAttackLocation.Crouching
+                        AttackLocation == FighterAttackLocation.Standing
+                        || AttackLocation == FighterAttackLocation.Crouching
                     )
                     {
                         Velocity = SVector2.zero;
@@ -436,18 +448,13 @@ namespace Game.Sim
                 }
             }
 
-            if (
-                dashCancelEligible
-                && InputH.IsHeld(ForwardInput)
-                && dashCancelEligible
-                && State == CharacterState.ForwardDash
-            )
+            if (dashCancelEligible && InputH.IsHeld(ForwardInput) && State == CharacterState.ForwardDash)
             {
                 SetState(CharacterState.Running, frame, Frame.Infinity);
             }
         }
 
-        public void UpdatePosition(GameOptions options)
+        public void UpdatePosition(GameOptions options, SVector2 otherFighterPos)
         {
             // Apply gravity if not grounded and not in airdash
             if (
@@ -470,15 +477,22 @@ namespace Game.Sim
                 if (Velocity.y < 0)
                     Velocity.y = 0;
             }
-            if (Position.x >= options.Global.WallsX)
+
+            sfloat cameraMaxBounds =
+                otherFighterPos.x + 2 * (options.Global.CameraHalfWidth - options.Global.CameraPadding);
+            sfloat cameraMinBounds =
+                otherFighterPos.x - 2 * (options.Global.CameraHalfWidth - options.Global.CameraPadding);
+            sfloat maxBounds = Mathsf.Min(options.Global.WallsX, cameraMaxBounds);
+            sfloat minBounds = Mathsf.Max(-options.Global.WallsX, cameraMinBounds);
+            if (Position.x >= maxBounds)
             {
-                Position.x = options.Global.WallsX;
+                Position.x = maxBounds;
                 if (Velocity.x > 0)
                     Velocity.x = 0;
             }
-            if (Position.x <= -options.Global.WallsX)
+            if (Position.x <= minBounds)
             {
-                Position.x = -options.Global.WallsX;
+                Position.x = minBounds;
                 if (Velocity.x < 0)
                     Velocity.x = 0;
             }
@@ -486,7 +500,7 @@ namespace Game.Sim
 
         public void ApplyAerialCancel(Frame frame, GameOptions options, CharacterConfig config)
         {
-            if (Location(options) != FighterLocation.Grounded)
+            if (!OnGround(options))
             {
                 return;
             }
@@ -563,7 +577,7 @@ namespace Game.Sim
                 SetState(
                     holdingDown ? CharacterState.BlockCrouch : CharacterState.BlockStand,
                     frame,
-                    frame + props.BlockstunTicks + 1
+                    frame + props.BlockstunTicks
                 );
 
                 ImmunityEnd = frame + 7;
@@ -571,12 +585,10 @@ namespace Game.Sim
                 return new HitOutcome { Kind = HitKind.Blocked };
             }
 
-            // Apply Hit/collision stuff is done after the player is actionable, so if the player needs to be
-            // inactionable for "one more frame"
             switch (props.KnockdownKind)
             {
                 case KnockdownKind.None:
-                    SetState(CharacterState.Hit, frame, frame + props.HitstunTicks + 1);
+                    SetState(CharacterState.Hit, frame, frame + props.HitstunTicks);
                     break;
                 case KnockdownKind.Light:
                     SetState(CharacterState.Knockdown, frame, Frame.Infinity);
@@ -599,9 +611,7 @@ namespace Game.Sim
 
         public void ApplyClank(Frame frame, GameOptions options)
         {
-            // Apply Hit/collision stuff is done after the player is actionable, so if the player needs to be
-            // inactionable for "one more frame"
-            SetState(CharacterState.Hit, frame, frame + options.Global.ClankTicks + 1);
+            SetState(CharacterState.Hit, frame, frame + options.Global.ClankTicks);
 
             Velocity = SVector2.zero;
         }

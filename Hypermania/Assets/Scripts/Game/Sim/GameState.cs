@@ -1,15 +1,12 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using Design.Animation;
 using Design.Configs;
 using Game.View.Overlay;
 using MemoryPack;
 using Netcode.Rollback;
-using UnityEngine;
 using Utils;
 using Utils.SoftFloat;
 
@@ -28,6 +25,7 @@ namespace Game.Sim
     {
         public bool HealOnActionable;
         public CharacterConfig Character;
+        public int SkinIndex;
     }
 
     [Serializable]
@@ -169,7 +167,7 @@ namespace Game.Sim
                 Fighters[i].InputH.PushInput(remapInputs[i]);
             }
             // if hitstop, only grab inputs and return
-            if (HitstopFramesRemaining >= 0)
+            if (HitstopFramesRemaining > 0)
             {
                 HitstopFramesRemaining--;
                 return;
@@ -184,7 +182,7 @@ namespace Game.Sim
             // Tick the state machine, making the character idle if an animation/stun finishes
             for (int i = 0; i < Fighters.Length; i++)
             {
-                Fighters[i].TickStateMachine(SimFrame);
+                Fighters[i].TickStateMachine(SimFrame, options);
             }
 
             // This function internally appies changes to the fighter's velocity based on movement inputs
@@ -249,7 +247,7 @@ namespace Game.Sim
             // Apply any velocities set during movement or through knockback.
             for (int i = 0; i < Fighters.Length; i++)
             {
-                Fighters[i].UpdatePosition(options);
+                Fighters[i].UpdatePosition(options, Fighters[i ^ 1].Position);
             }
 
             // Update hype if they are holding forward
@@ -482,10 +480,8 @@ namespace Game.Sim
             }
             else if (c.BoxA.Data.Kind == HitboxKind.Hurtbox && c.BoxB.Data.Kind == HitboxKind.Hurtbox)
             {
-                sfloat aPushFactor =
-                    Fighters[c.BoxA.Owner].Location(options) == FighterLocation.Grounded ? (sfloat)1f : (sfloat)0.1f;
-                sfloat bPushFactor =
-                    Fighters[c.BoxB.Owner].Location(options) == FighterLocation.Grounded ? (sfloat)1f : (sfloat)0.1f;
+                sfloat aPushFactor = Fighters[c.BoxA.Owner].OnGround(options) ? (sfloat)1f : (sfloat)0.1f;
+                sfloat bPushFactor = Fighters[c.BoxB.Owner].OnGround(options) ? (sfloat)1f : (sfloat)0.1f;
 
                 sfloat aPush = aPushFactor / (aPushFactor + bPushFactor);
                 sfloat bPush = bPushFactor / (aPushFactor + bPushFactor);

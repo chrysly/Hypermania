@@ -1,16 +1,20 @@
+using System;
 using Design.Configs;
 using Game.Sim;
 using Game.View.Events;
 using Game.View.Events.Vfx;
 using UnityEngine;
+using UnityEngine.U2D.Animation;
 using Utils;
 
 namespace Game.View.Fighters
 {
     [RequireComponent(typeof(Animator))]
+    [RequireComponent(typeof(SpriteLibrary))]
     public class FighterView : MonoBehaviour
     {
         private Animator _animator;
+        private SpriteLibrary _spriteLibrary;
         private CharacterConfig _characterConfig;
         private RuntimeAnimatorController _oldController;
 
@@ -20,14 +24,20 @@ namespace Game.View.Fighters
         public virtual void Awake()
         {
             _animator = GetComponent<Animator>();
+            _spriteLibrary = GetComponent<SpriteLibrary>();
             _animator.speed = 0f;
         }
 
-        public virtual void Init(CharacterConfig characterConfig)
+        public virtual void Init(CharacterConfig characterConfig, int skinIndex)
         {
+            if (skinIndex < 0 || skinIndex >= characterConfig.Skins.Length)
+            {
+                throw new InvalidOperationException("Skin index out of range");
+            }
             _characterConfig = characterConfig;
             _oldController = _animator.runtimeAnimatorController;
             _animator.runtimeAnimatorController = characterConfig.AnimationController;
+            _spriteLibrary.spriteLibraryAsset = characterConfig.Skins[skinIndex];
         }
 
         public virtual void Render(Frame frame, in FighterState state)
@@ -39,8 +49,8 @@ namespace Game.View.Fighters
             transform.position = pos;
             transform.localScale = new Vector3(state.FacingDir == FighterFacing.Left ? -1 : 1, 1f, 1f);
 
-            CharacterState animation = state.State;
-            int totalTicks = _characterConfig.GetHitboxData(animation).TotalTicks;
+            CharacterState animState = state.State;
+            int totalTicks = _characterConfig.GetHitboxData(animState).TotalTicks;
 
             int ticks = state.CurrentTick;
             if (_characterConfig.AnimLoops(animation))
@@ -52,7 +62,7 @@ namespace Game.View.Fighters
                 ticks = Mathf.Min(ticks, totalTicks - 1);
             }
 
-            _animator.Play(animation.ToString(), 0, (float)ticks / (totalTicks - 1));
+            _animator.Play(animState.ToString(), 0, (float)ticks / (totalTicks - 1));
             _animator.Update(0f); // force pose evaluation this frame while paused
         }
 
@@ -79,6 +89,20 @@ namespace Game.View.Fighters
                         },
                         StartFrame = frame,
                         Hash = 0, // can't be more than one block per character on a frame?
+                    }
+                );
+            }
+            if (
+                (state.State == CharacterState.Hit || state.State == CharacterState.Knockdown)
+                && frame == state.StateStart
+            )
+            {
+                vfxManager.AddDesired(
+                    new ViewEvent<VfxEvent>()
+                    {
+                        Event = new VfxEvent { Kind = VfxKind.SmallHit, Position = (Vector2)state.HitLocation },
+                        StartFrame = frame,
+                        Hash = 0,
                     }
                 );
             }
