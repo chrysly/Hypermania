@@ -2,6 +2,7 @@ using Design.Animation;
 using Design.Configs;
 using Game.Sim;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Utils;
 using Utils.EnumArray;
@@ -20,7 +21,7 @@ namespace Game.View.Overlay
 
         public void SetType(Frame frame, in FighterState state, CharacterConfig characterConfig)
         {
-            FrameData data = characterConfig.GetHitboxData(state.State).GetFrame(frame - state.StateStart);
+            FrameData data = characterConfig.GetHitboxData(state.State).GetFrame(state.CurrentTick);
             FrameType res = data == null ? FrameType.Neutral : data.FrameType;
             SetType(res);
         }

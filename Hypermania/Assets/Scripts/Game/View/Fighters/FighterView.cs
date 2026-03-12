@@ -42,7 +42,7 @@ namespace Game.View.Fighters
             CharacterState animation = state.State;
             int totalTicks = _characterConfig.GetHitboxData(animation).TotalTicks;
 
-            int ticks = frame - state.StateStart;
+            int ticks = state.CurrentTick;
             if (_characterConfig.AnimLoops(animation))
             {
                 ticks %= totalTicks;
