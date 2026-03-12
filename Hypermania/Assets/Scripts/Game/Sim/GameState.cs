@@ -121,7 +121,10 @@ namespace Game.Sim
 
         private void DoRoundEnd(GameOptions options, Span<GameInput> outInputs)
         {
-            SpeedRatio = 1 - (sfloat)(RealFrame - RoundEndStart) / (options.Global.RoundEndTicks) * (sfloat)0.9f;
+            SpeedRatio =
+                1
+                - (sfloat)(RealFrame - RoundEndStart) / (options.Global.RoundEndTicks) * (sfloat)0.25f
+                - (sfloat)0.50f;
             if (RealFrame - RoundEndStart < options.Global.RoundEndTicks)
             {
                 return;
