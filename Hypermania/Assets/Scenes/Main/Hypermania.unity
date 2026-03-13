@@ -594,10 +594,10 @@ MonoBehaviour:
   _options:
     Global: {fileID: 11400000, guid: 097b22ad0bf6d4d8fab37f2f2510eefb, type: 2}
     Players:
-    - HealOnActionable: 0
+    - HealOnActionable: 1
       Character: {fileID: 11400000, guid: b193994fbc9b652d2985b409cb9f63cf, type: 2}
       SkinIndex: 0
-    - HealOnActionable: 0
+    - HealOnActionable: 1
       Character: {fileID: 11400000, guid: b193994fbc9b652d2985b409cb9f63cf, type: 2}
       SkinIndex: 1
     LocalPlayers:

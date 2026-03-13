@@ -420,7 +420,7 @@ namespace Game.Sim
                     options.Global.Audio.ClosestBeat(frame, AudioConfig.BeatSubdivision.QuarterNote) - realFrame;
                 startFrame += frameDiff;
                 // beat cancel inputs must be on the beat
-                bufferWindow = 1;
+                bufferWindow = 2;
             }
 
             foreach (((var loc, var input), var state) in _attackDictionary)
