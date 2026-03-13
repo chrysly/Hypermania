@@ -387,6 +387,7 @@ namespace Game.Sim
                 { (FighterAttackLocation.Standing, InputFlags.LightAttack), CharacterState.LightAttack },
                 { (FighterAttackLocation.Standing, InputFlags.MediumAttack), CharacterState.MediumAttack },
                 { (FighterAttackLocation.Standing, InputFlags.HeavyAttack), CharacterState.SuperAttack },
+                { (FighterAttackLocation.Standing, InputFlags.SpecialAttack), CharacterState.SpecialAttack },
                 { (FighterAttackLocation.Crouching, InputFlags.LightAttack), CharacterState.LightCrouching },
                 { (FighterAttackLocation.Crouching, InputFlags.MediumAttack), CharacterState.MediumCrouching },
                 { (FighterAttackLocation.Crouching, InputFlags.HeavyAttack), CharacterState.SuperCrouching },
