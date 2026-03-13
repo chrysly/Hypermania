@@ -51,14 +51,15 @@ namespace Game.View
 
         private GameOptions _options;
 
-
         [SerializeField]
         private PlayerParams[] _playerParams;
 
         [SerializeField]
         private Params _params;
 
-        [SerializeField] private float _conductorLerpSpeed;
+        [SerializeField]
+        private float _conductorLerpSpeed;
+
         [SerializeField]
         private bool _disableCameraShake;
 
@@ -105,7 +106,7 @@ namespace Game.View
             {
                 _fighters[i].Render(state.SimFrame, state.Fighters[i]);
                 _playerParams[i].ManiaView.Render(state.RealFrame, state.Manias[i]);
-                
+
                 maniasEnabled |= state.Manias[i].Enabled(state.RealFrame);
                 if (maniasEnabled)
                     _conductor.t = Mathf.Lerp(_conductor.t, i * 2 - 1, deltaTime * _conductorLerpSpeed);
@@ -163,7 +164,11 @@ namespace Game.View
 
             if (!maniasEnabled)
             {
-                _conductor.t = Mathf.Lerp(_conductor.t, (float)(state.HypeMeter / options.Global.MaxHype), deltaTime * _conductorLerpSpeed);
+                _conductor.t = Mathf.Lerp(
+                    _conductor.t,
+                    (float)(state.HypeMeter / options.Global.MaxHype),
+                    deltaTime * _conductorLerpSpeed
+                );
             }
             _params.HypeBarView.SetHype((float)state.HypeMeter);
             _params.FrameDataOverlay.AddFrameData(state, options);

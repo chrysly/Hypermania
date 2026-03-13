@@ -551,22 +551,26 @@ namespace Game.Sim
         {
             if (c.BoxA.Data.Kind == HitboxKind.Hitbox && c.BoxB.Data.Kind == HitboxKind.Hurtbox)
             {
+                sfloat mult = 1 + (sfloat)0.2f * (HypeMeter / options.Global.MaxHype) * (c.BoxA.Owner * -2 + 1);
                 return Fighters[c.BoxB.Owner]
                     .ApplyHit(
                         SimFrame,
                         options.Players[c.BoxB.Owner].Character,
                         c.BoxA.Data,
-                        c.BoxB.Box.ClosestPointToCenter(c.BoxA.Box)
+                        c.BoxB.Box.ClosestPointToCenter(c.BoxA.Box),
+                        mult
                     );
             }
             else if (c.BoxA.Data.Kind == HitboxKind.Hurtbox && c.BoxB.Data.Kind == HitboxKind.Hitbox)
             {
+                sfloat mult = 1 + (sfloat)0.2f * (HypeMeter / options.Global.MaxHype) * (c.BoxB.Owner * -2 + 1);
                 return Fighters[c.BoxA.Owner]
                     .ApplyHit(
                         SimFrame,
                         options.Players[c.BoxA.Owner].Character,
                         c.BoxB.Data,
-                        c.BoxA.Box.ClosestPointToCenter(c.BoxB.Box)
+                        c.BoxA.Box.ClosestPointToCenter(c.BoxB.Box),
+                        mult
                     );
             }
             else if (c.BoxA.Data.Kind == HitboxKind.Hitbox && c.BoxB.Data.Kind == HitboxKind.Hitbox)

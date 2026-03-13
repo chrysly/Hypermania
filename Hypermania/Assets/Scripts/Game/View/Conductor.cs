@@ -27,7 +27,7 @@ namespace Game.View
         private bool _hasStarted;
 
         public float t;
-        
+
         [SerializeField]
         private float _maxQueuedSeconds = 0.2f;
 
@@ -68,7 +68,7 @@ namespace Game.View
             {
                 options.Global.Audio.CharacterThemes[options.Players[0].Character.Character],
                 songClip,
-                options.Global.Audio.CharacterThemes[options.Players[1].Character.Character]
+                options.Global.Audio.CharacterThemes[options.Players[1].Character.Character],
             };
             for (int i = 0; i < 3; i++)
             {
@@ -136,6 +136,7 @@ namespace Game.View
         {
             PublishTick(deltaTime);
         }
+
         public void PublishTick(double deltaTime)
         {
             if (_pcms == null || deltaTime <= 0.0)
@@ -184,10 +185,7 @@ namespace Game.View
                     double playbackFrame = ClampOrWrapSourceFrame(_sourceFrameCursor);
                     WriteCurrentPlaybackFrame(data, dstBase, outputChannels, playbackFrame);
 
-                    double remaining = GetForwardDistanceInPlaybackSpace(
-                        _sourceFrameCursor,
-                        _targetSourceFrame
-                    );
+                    double remaining = GetForwardDistanceInPlaybackSpace(_sourceFrameCursor, _targetSourceFrame);
 
                     double baseStep = _sourceFramesPerOutputFrame;
 
@@ -202,29 +200,12 @@ namespace Game.View
             }
         }
 
-        private void WriteCurrentPlaybackFrame(
-            float[] data,
-            int dstBase,
-            int outputChannels,
-            double playbackFrame
-        )
+        private void WriteCurrentPlaybackFrame(float[] data, int dstBase, int outputChannels, double playbackFrame)
         {
-            WriteCrossfadedFrame(
-                data,
-                dstBase,
-                outputChannels,
-                playbackFrame,
-                t
-            );
+            WriteCrossfadedFrame(data, dstBase, outputChannels, playbackFrame, t);
         }
 
-        private void WriteCrossfadedFrame(
-            float[] data,
-            int dstBase,
-            int outputChannels,
-            double sourceFrame,
-            float t
-        )
+        private void WriteCrossfadedFrame(float[] data, int dstBase, int outputChannels, double sourceFrame, float t)
         {
             if (_pcms == null)
             {
@@ -333,9 +314,7 @@ namespace Game.View
             if (_totalSamples <= 0)
                 return 0.0;
 
-            return _loopSong
-                ? WrapLoopingSourceFrame(sourceFrame)
-                : Math.Clamp(sourceFrame, 0.0, _totalSamples);
+            return _loopSong ? WrapLoopingSourceFrame(sourceFrame) : Math.Clamp(sourceFrame, 0.0, _totalSamples);
         }
 
         private double WrapLoopingSourceFrame(double sourceFrame)

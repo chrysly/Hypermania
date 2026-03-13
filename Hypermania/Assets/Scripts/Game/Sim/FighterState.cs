@@ -569,7 +569,13 @@ namespace Game.Sim
             }
         }
 
-        public HitOutcome ApplyHit(Frame frame, CharacterConfig characterConfig, BoxProps props, SVector2 location)
+        public HitOutcome ApplyHit(
+            Frame frame,
+            CharacterConfig characterConfig,
+            BoxProps props,
+            SVector2 location,
+            sfloat damageMult
+        )
         {
             if (ImmunityEnd > frame)
             {
@@ -613,9 +619,9 @@ namespace Game.Sim
             // TODO: fixme, just to prevent multi hit
             ImmunityEnd = frame + 7;
             // TODO: if high enough, go knockdown
-            Health -= props.Damage;
+            Health -= props.Damage * damageMult;
 
-            Burst += props.Damage;
+            Burst += props.Damage * damageMult;
             Burst = Mathsf.Clamp(Burst, sfloat.Zero, characterConfig.BurstMax);
 
             Velocity = props.Knockback;
