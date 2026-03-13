@@ -12,6 +12,7 @@ namespace Game.View.Events
         ComboGood,
         ComboMiss,
         ComboOk,
+        Block
     }
 
     [Serializable]

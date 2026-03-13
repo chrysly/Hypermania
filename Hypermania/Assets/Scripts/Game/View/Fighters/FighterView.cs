@@ -89,6 +89,15 @@ namespace Game.View.Fighters
                         Hash = 0,
                     }
                 );
+                sfxManager.AddDesired(new ViewEvent<SfxEvent>
+                {
+                    Event = new SfxEvent
+                    {
+                        Kind = SfxKind.Block,
+                    },
+                    StartFrame = realFrame,
+                    Hash = 0,
+                });
             }
 
             if (state.HitLastRealFrame)
@@ -102,7 +111,6 @@ namespace Game.View.Fighters
                     }
                 );
             }
-
             if (state.DashedLastRealFrame)
             {
                 Vector2 dir = (Vector2)(
