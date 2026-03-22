@@ -109,7 +109,7 @@ namespace Game.Sim
 
         public static FighterState Create(
             int index,
-            GameOptions options,
+            sfloat health,
             SVector2 position,
             FighterFacing facingDirection,
             int lives
@@ -127,7 +127,7 @@ namespace Game.Sim
                 ComboedCount = 0,
                 InputH = new InputHistory(),
                 // TODO: character dependent?
-                Health = options.Players[index].Character.Health,
+                Health = health,
                 FacingDir = facingDirection,
                 Lives = lives,
                 Burst = 0,

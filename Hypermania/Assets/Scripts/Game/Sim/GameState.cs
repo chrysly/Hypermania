@@ -114,7 +114,13 @@ namespace Game.Sim
             {
                 sfloat xPos = (i - ((sfloat)options.Players.Length - 1) / 2) * 4;
                 FighterFacing facing = xPos > 0 ? FighterFacing.Left : FighterFacing.Right;
-                state.Fighters[i] = FighterState.Create(i, options, new SVector2(xPos, sfloat.Zero), facing, 3);
+                state.Fighters[i] = FighterState.Create(
+                    i,
+                    options.Players[i].Character.Health,
+                    new SVector2(xPos, sfloat.Zero),
+                    facing,
+                    3
+                );
                 state.Manias[i] = ManiaState.Create(
                     new ManiaConfig
                     {

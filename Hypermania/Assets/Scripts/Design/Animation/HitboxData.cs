@@ -178,16 +178,17 @@ namespace Design.Animation
             return hc.ToHashCode();
         }
 
-        public bool HasHitbox()
+        public bool HasHitbox(out BoxProps outBox)
         {
             foreach (BoxData box in Boxes)
             {
                 if (box.Props.Kind == HitboxKind.Hitbox)
                 {
+                    outBox = box.Props;
                     return true;
                 }
             }
-
+            outBox = default;
             return false;
         }
     }
@@ -230,7 +231,7 @@ namespace Design.Animation
         {
             foreach (FrameData frame in Frames)
             {
-                if (frame.HasHitbox())
+                if (frame.HasHitbox(out _))
                 {
                     return true;
                 }
