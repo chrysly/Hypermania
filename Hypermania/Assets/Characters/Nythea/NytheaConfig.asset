@@ -76,3 +76,19 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 7df773ebc66a3903eade94cab88d8482, type: 2}
   Combos:
   - {fileID: 11400000, guid: b997b2bf67ce87ec2ad78220aa1d20ca, type: 2}
+  Projectiles:
+  - TriggerState: 14
+    SpawnTick: 18
+    Prefab: {fileID: 3076411713119530799, guid: 070111974916eba43b68307ac188c8f7, type: 3}
+    HitboxData: {fileID: 11400000, guid: d3101e0436774ef4faf89d1e286ccbd3, type: 2}
+    SpawnOffset:
+      x:
+        rawValue: 1065353216
+      y:
+        rawValue: 1056964608
+    Velocity:
+      x:
+        rawValue: 1084227584
+      y:
+        rawValue: 0
+    LifetimeTicks: 512

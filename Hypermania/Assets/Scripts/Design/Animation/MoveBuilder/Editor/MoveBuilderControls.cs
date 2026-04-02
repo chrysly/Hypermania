@@ -1,3 +1,4 @@
+using Game.View;
 using Game.View.Fighters;
 using UnityEditor;
 using UnityEngine;
@@ -5,7 +6,7 @@ using Utils.SoftFloat;
 
 namespace Design.Animation.MoveBuilder.Editor
 {
-    [CustomEditor(typeof(FighterView), true)]
+    [CustomEditor(typeof(EntityView), true)]
     public sealed class MoveBuilderControls : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
@@ -15,7 +16,7 @@ namespace Design.Animation.MoveBuilder.Editor
             EditorGUILayout.Space(8);
             EditorGUILayout.LabelField("MoveBuilder Controls", EditorStyles.boldLabel);
 
-            var fighter = (FighterView)target;
+            var fighter = (EntityView)target;
             var m = MoveBuilderModelStore.Get(fighter);
             var animState = MoveBuilderAnimationState.GetAnimState();
 

@@ -75,6 +75,9 @@ namespace Game.Sim
         [MemoryPackIgnore]
         public const int MAX_COLLIDERS = 100;
 
+        [MemoryPackIgnore]
+        public const int MAX_PROJECTILES = 8;
+
         public int PartialSimFrameCount; // to accumulate frames when speedRatio is < 1
         public Frame RealFrame; // network/music frame
         public Frame SimFrame; // Game sim frame
@@ -82,6 +85,7 @@ namespace Game.Sim
         public Frame RoundEnd;
         public FighterState[] Fighters;
         public ManiaState[] Manias;
+        public ProjectileState[] Projectiles;
         public sfloat HypeMeter;
         public GameMode GameMode;
         public int HitstopFramesRemaining;
@@ -107,6 +111,7 @@ namespace Game.Sim
                 RoundEnd = new Frame(options.Global.RoundTimeTicks),
                 Fighters = new FighterState[options.Players.Length],
                 Manias = new ManiaState[options.Players.Length],
+                Projectiles = new ProjectileState[MAX_PROJECTILES],
                 HitstopFramesRemaining = 0,
                 HypeMeter = (sfloat)0f,
                 GameMode = GameMode.Countdown,
@@ -160,6 +165,11 @@ namespace Game.Sim
                 Fighters[i].RoundReset(options.Players[i].Character, new SVector2(xPos, sfloat.Zero), facing);
                 outInputs[i] = GameInput.None;
                 Manias[i].ManiaEvents.Clear();
+            }
+
+            for (int i = 0; i < Projectiles.Length; i++)
+            {
+                Projectiles[i].Active = false;
             }
 
             ModeStart = Frame.NullFrame;
@@ -309,6 +319,44 @@ namespace Game.Sim
                     );
             }
 
+            // Check if any fighter should spawn a projectile this frame
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                var projConfigs = options.Players[i].Character.Projectiles;
+                if (projConfigs == null)
+                    continue;
+
+                for (int p = 0; p < projConfigs.Count; p++)
+                {
+                    var projConfig = projConfigs[p];
+                    if (Fighters[i].State != projConfig.TriggerState)
+                        continue;
+
+                    int tick = SimFrame - Fighters[i].StateStart;
+                    if (tick != projConfig.SpawnTick)
+                        continue;
+
+                    SVector2 spawnOffset = projConfig.SpawnOffset;
+                    SVector2 velocity = projConfig.Velocity;
+                    if (Fighters[i].FacingDir == FighterFacing.Left)
+                    {
+                        spawnOffset.x *= -1;
+                        velocity.x *= -1;
+                    }
+
+                    SpawnProjectile(
+                        i,
+                        Fighters[i].Position + spawnOffset,
+                        velocity,
+                        Fighters[i].FacingDir,
+                        SimFrame,
+                        projConfig.LifetimeTicks,
+                        p
+                    );
+                }
+            }
+
+            AdvanceProjectiles(options);
             DoCollisionStep(options);
 
             if (SimFrame == RoundEnd)
@@ -424,6 +472,112 @@ namespace Game.Sim
             return rhythmCancel;
         }
 
+        private bool SpawnProjectile(
+            int owner,
+            SVector2 position,
+            SVector2 velocity,
+            FighterFacing facing,
+            Frame simFrame,
+            int lifetimeTicks,
+            int configIndex
+        )
+        {
+            for (int i = 0; i < Projectiles.Length; i++)
+            {
+                if (!Projectiles[i].Active)
+                {
+                    Projectiles[i] = new ProjectileState
+                    {
+                        Active = true,
+                        Owner = owner,
+                        Position = position,
+                        Velocity = velocity,
+                        CreationFrame = simFrame,
+                        LifetimeTicks = lifetimeTicks,
+                        FacingDir = facing,
+                        MarkedForDestroy = false,
+                        ConfigIndex = configIndex,
+                    };
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void AdvanceProjectiles(GameOptions options)
+        {
+            for (int i = 0; i < Projectiles.Length; i++)
+            {
+                if (!Projectiles[i].Active)
+                    continue;
+
+                if (Projectiles[i].MarkedForDestroy)
+                {
+                    Projectiles[i].Active = false;
+                    continue;
+                }
+
+                int age = SimFrame - Projectiles[i].CreationFrame;
+                if (age >= Projectiles[i].LifetimeTicks)
+                {
+                    Projectiles[i].Active = false;
+                    continue;
+                }
+
+                Projectiles[i].Position += Projectiles[i].Velocity * 1 / GameManager.TPS;
+
+                // Despawn if past stage bounds
+                if (
+                    Projectiles[i].Position.x > options.Global.WallsX + 2
+                    || Projectiles[i].Position.x < -options.Global.WallsX - 2
+                )
+                {
+                    Projectiles[i].Active = false;
+                }
+            }
+        }
+
+        private void AddProjectileBoxes(GameOptions options)
+        {
+            for (int i = 0; i < Projectiles.Length; i++)
+            {
+                if (!Projectiles[i].Active)
+                    continue;
+
+                int owner = Projectiles[i].Owner;
+                var projConfigs = options.Players[owner].Character.Projectiles;
+                if (projConfigs == null || Projectiles[i].ConfigIndex >= projConfigs.Count)
+                    continue;
+
+                var projConfig = projConfigs[Projectiles[i].ConfigIndex];
+                if (projConfig.HitboxData == null)
+                    continue;
+
+                int tick = SimFrame - Projectiles[i].CreationFrame;
+                FrameData frameData = projConfig.HitboxData.GetFrame(tick);
+                if (frameData == null)
+                    continue;
+
+                foreach (var box in frameData.Boxes)
+                {
+                    SVector2 centerLocal = box.CenterLocal;
+                    if (Projectiles[i].FacingDir == FighterFacing.Left)
+                    {
+                        centerLocal.x *= -1;
+                    }
+
+                    SVector2 centerWorld = Projectiles[i].Position + centerLocal;
+                    BoxProps newProps = box.Props;
+                    if (Projectiles[i].FacingDir == FighterFacing.Left)
+                    {
+                        newProps.Knockback.x *= -1;
+                    }
+
+                    PhysicsCtx.Physics.AddBox(owner, centerWorld, box.SizeLocal, newProps);
+                }
+            }
+        }
+
         private void DoCollisionStep(GameOptions options)
         {
             // Each fighter then adds their hit/hurtboxes to the physics context, which will solve and find all
@@ -433,7 +587,7 @@ namespace Game.Sim
                 Fighters[i].AddBoxes(SimFrame, options.Players[i].Character, PhysicsCtx.Physics, i);
             }
 
-            // AdvanceProjectiles();
+            AddProjectileBoxes(options);
 
             PhysicsCtx.Physics.GetCollisions(PhysicsCtx.Collisions);
 
@@ -502,6 +656,15 @@ namespace Game.Sim
                     {
                         sfloat damage = outcome.Props.Damage;
                         UpdateHype(options, attackerBox.Owner, damage);
+
+                        // Mark any active projectile owned by the attacker for destruction
+                        for (int p = 0; p < Projectiles.Length; p++)
+                        {
+                            if (Projectiles[p].Active && Projectiles[p].Owner == owners.Item1)
+                            {
+                                Projectiles[p].MarkedForDestroy = true;
+                            }
+                        }
                     }
 
                     //to start a rhythm combo, we must sure that the move was not traded

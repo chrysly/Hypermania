@@ -21,6 +21,12 @@ namespace Scenes.Session
         [SerializeField]
         private GameOptions _options;
 
+        private void Awake()
+        {
+            Config = _config;
+            Options = _options;
+        }
+
         private void OnValidate()
         {
             Config = _config;

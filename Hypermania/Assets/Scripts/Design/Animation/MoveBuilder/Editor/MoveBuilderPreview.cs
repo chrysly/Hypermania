@@ -1,3 +1,4 @@
+using Game.View;
 using Game.View.Fighters;
 using UnityEditor;
 using UnityEditor.EditorTools;
@@ -6,12 +7,12 @@ using Utils.SoftFloat;
 
 namespace Design.Animation.MoveBuilder.Editor
 {
-    [EditorTool("MoveBuilder Preview", typeof(FighterView))]
+    [EditorTool("MoveBuilder Preview", typeof(EntityView))]
     public sealed class MoveBuilderPreview : EditorTool
     {
         public override void OnToolGUI(EditorWindow window)
         {
-            var fighter = (FighterView)target;
+            var fighter = (EntityView)target;
             var m = MoveBuilderModelStore.Get(fighter);
             var animState = MoveBuilderAnimationState.GetAnimState();
 
@@ -150,7 +151,7 @@ namespace Design.Animation.MoveBuilder.Editor
             }
         }
 
-        private void HandleBoxSelectionClick(FighterView fighter, MoveBuilderModel m, FrameData frame)
+        private void HandleBoxSelectionClick(EntityView fighter, MoveBuilderModel m, FrameData frame)
         {
             var e = Event.current;
 
@@ -165,7 +166,7 @@ namespace Design.Animation.MoveBuilder.Editor
             e.Use();
         }
 
-        private int PickBoxIndexUnderMouse(FighterView fighter, MoveBuilderModel m, FrameData frame, Vector2 mousePos)
+        private int PickBoxIndexUnderMouse(EntityView fighter, MoveBuilderModel m, FrameData frame, Vector2 mousePos)
         {
             Transform root = fighter.transform;
 
@@ -200,7 +201,7 @@ namespace Design.Animation.MoveBuilder.Editor
         }
 
         private void DrawAndEditBox(
-            FighterView fighter,
+            EntityView fighter,
             MoveBuilderModel m,
             MoveBuilderAnimationState state,
             FrameData frame,
@@ -261,7 +262,7 @@ namespace Design.Animation.MoveBuilder.Editor
         }
 
         private void DrawAndEditKnockbackArrow(
-            FighterView fighter,
+            EntityView fighter,
             MoveBuilderModel m,
             MoveBuilderAnimationState state,
             FrameData frame,
