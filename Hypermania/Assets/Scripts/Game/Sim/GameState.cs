@@ -523,7 +523,7 @@ namespace Game.Sim
                 if (projConfigs == null || Projectiles[i].ConfigIndex >= projConfigs.Count)
                     continue;
 
-                Projectiles[i].AddBoxes(SimFrame, projConfigs[Projectiles[i].ConfigIndex], PhysicsCtx.Physics);
+                Projectiles[i].AddBoxes(SimFrame, projConfigs[Projectiles[i].ConfigIndex], PhysicsCtx.Physics, i);
             }
         }
 
@@ -614,13 +614,9 @@ namespace Game.Sim
                         sfloat damage = outcome.Props.Damage;
                         UpdateHype(options, attackerBox.Owner, damage);
 
-                        // Mark any active projectile owned by the attacker for destruction
-                        for (int p = 0; p < Projectiles.Length; p++)
+                        if (attackerBox.ProjectileIndex >= 0)
                         {
-                            if (Projectiles[p].Active && Projectiles[p].Owner == owners.Item1)
-                            {
-                                Projectiles[p].MarkedForDestroy = true;
-                            }
+                            Projectiles[attackerBox.ProjectileIndex].MarkedForDestroy = true;
                         }
                     }
 

@@ -52,7 +52,7 @@ namespace Game.Sim
         /// <summary>
         /// Adds this projectile's hitboxes to the physics context for collision detection.
         /// </summary>
-        public void AddBoxes(Frame simFrame, ProjectileConfig config, Physics<BoxProps> physics)
+        public void AddBoxes(Frame simFrame, ProjectileConfig config, Physics<BoxProps> physics, int projectileIndex)
         {
             if (!Active)
                 return;
@@ -80,7 +80,7 @@ namespace Game.Sim
                     newProps.Knockback.x *= -1;
                 }
 
-                physics.AddBox(Owner, centerWorld, box.SizeLocal, newProps);
+                physics.AddBox(Owner, centerWorld, box.SizeLocal, newProps, projectileIndex);
             }
         }
     }
