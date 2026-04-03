@@ -126,7 +126,8 @@ namespace Game.View
                     if (_projectileViews[i] == null)
                     {
                         int owner = state.Projectiles[i].Owner;
-                        var projConfigs = _options.Players[owner].Character.Projectiles;
+                        var characterConfig = _options.Players[owner].Character;
+                        var projConfigs = characterConfig.Projectiles;
                         if (projConfigs != null && state.Projectiles[i].ConfigIndex < projConfigs.Count)
                         {
                             var prefab = projConfigs[state.Projectiles[i].ConfigIndex].Prefab;
@@ -134,7 +135,7 @@ namespace Game.View
                             {
                                 _projectileViews[i] = Instantiate(prefab);
                                 _projectileViews[i].transform.SetParent(transform, true);
-                                _projectileViews[i].Init();
+                                _projectileViews[i].Init(characterConfig, _options.Players[owner].SkinIndex);
                             }
                         }
                     }
