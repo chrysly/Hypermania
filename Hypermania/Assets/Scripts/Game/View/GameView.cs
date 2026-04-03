@@ -166,15 +166,6 @@ namespace Game.View
                 }
             }
 
-            // Add projectile positions to camera interest points
-            for (int i = 0; i < state.Projectiles.Length; i++)
-            {
-                if (state.Projectiles[i].Active)
-                {
-                    interestPoints.Add((Vector2)state.Projectiles[i].Position);
-                }
-            }
-
             for (int i = 0; i < _options.Players.Length; i++)
             {
                 _playerParams[i].HealthBarView.SetHealth((int)state.Fighters[i].Health);
