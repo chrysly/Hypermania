@@ -58,7 +58,7 @@ namespace Scenes.Menus.InputSelect
             options.LocalPlayers[0] = new LocalPlayerOptions
             {
                 InputDevice = p1,
-                Controls = _controlsConfigs.Length >= 1 ? _controlsConfigs[0] : null,
+                Controls = _controlsConfigs?.Length >= 1 ? _controlsConfigs[0] : null,
             };
             options.InfoOptions = new InfoOptions { ShowFrameData = false };
 
@@ -92,7 +92,7 @@ namespace Scenes.Menus.InputSelect
                 options.LocalPlayers[i] = new LocalPlayerOptions
                 {
                     InputDevice = i == 0 ? p1 : p2,
-                    Controls = _controlsConfigs.Length <= i + 1 ? _controlsConfigs[i] : null,
+                    Controls = _controlsConfigs?.Length <= i + 1 ? _controlsConfigs[i] : null,
                 };
             }
             options.InfoOptions = new InfoOptions { ShowFrameData = SessionDirectory.Config == GameConfig.Training };
