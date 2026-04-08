@@ -152,6 +152,9 @@ namespace Scenes.Online
 
         void Update()
         {
+            if (!SteamManager.IsInitialized)
+                return;
+
             _createLobbyButton.interactable = !InLobby;
             _joinLobbyButton.interactable = !InLobby;
             _leaveLobbyButton.interactable = InLobby;

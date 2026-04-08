@@ -71,8 +71,11 @@ namespace Netcode.P2P
             Debug.Log("[Matchmaking] Leave()");
             if (_currentLobby.IsValid())
             {
-                Debug.Log($"[Matchmaking] Leaving lobby {_currentLobby.m_SteamID}");
-                SteamMatchmaking.LeaveLobby(_currentLobby);
+                if (SteamManager.IsInitialized)
+                {
+                    Debug.Log($"[Matchmaking] Leaving lobby {_currentLobby.m_SteamID}");
+                    SteamMatchmaking.LeaveLobby(_currentLobby);
+                }
                 _currentLobby = default;
             }
             return Task.CompletedTask;

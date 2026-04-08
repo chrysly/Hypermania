@@ -25,6 +25,7 @@ namespace Game.Runners
         protected InputBuffer[] _inputBuffers;
         protected bool _initialized;
         public bool Initialized => _initialized;
+        public virtual bool Disconnected => false;
         protected float _time;
 
         public virtual void Init(

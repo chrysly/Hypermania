@@ -51,6 +51,8 @@ namespace Game.Sim
         public PlayerOptions[] Players;
         public LocalPlayerOptions[] LocalPlayers;
         public InfoOptions InfoOptions;
+        public bool EnableMania;
+        public bool AlwaysRhythmCancel;
     }
 
     [MemoryPackable]
@@ -266,6 +268,11 @@ namespace Game.Sim
                 case GameMode.ManiaStart:
                     DoManiaStart(options, remapInputs);
                     break;
+            }
+
+            if (options.AlwaysRhythmCancel)
+            {
+                rhythmCancel = (true, 0);
             }
 
             // Push the current input into the input history, to read for buffering.
@@ -640,7 +647,8 @@ namespace Game.Sim
 
                     //to start a rhythm combo, we must sure that the move was not traded
                     if (
-                        attackerBox.Data.StartsRhythmCombo
+                        options.EnableMania
+                        && attackerBox.Data.StartsRhythmCombo
                         && !PhysicsCtx.HurtHitCollisions.ContainsKey((owners.Item2, owners.Item1))
                         && GameMode == GameMode.Fighting
                         && outcome.Kind == HitKind.Hit
@@ -651,7 +659,9 @@ namespace Game.Sim
                             ref Manias[owners.Item1],
                             Fighters[owners.Item1].FacingDir,
                             options,
-                            options.Players[owners.Item1].Character
+                            options.Players[owners.Item1].Character,
+                            this,
+                            owners.Item1
                         );
                         GameMode = GameMode.ManiaStart;
                         ModeStart = RealFrame;

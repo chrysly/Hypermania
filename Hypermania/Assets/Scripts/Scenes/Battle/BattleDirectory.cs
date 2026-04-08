@@ -40,6 +40,7 @@ namespace Scenes.Battle
         public void OnEnable()
         {
             _gameManager.OnGameFinished += OnGameFinished;
+            _gameManager.OnGameDisconnected += OnGameDisconnected;
             switch (SessionDirectory.Config)
             {
                 case GameConfig.Local:
@@ -82,9 +83,21 @@ namespace Scenes.Battle
                 .Execute();
         }
 
+        void OnGameDisconnected()
+        {
+            _gameManager.DeInit();
+            SceneLoader
+                .Instance.LoadNewScene()
+                .Unload(SceneID.Battle)
+                .Unload(SceneID.LiveConnection)
+                .WithOverlay()
+                .Execute();
+        }
+
         public void OnDisable()
         {
             _gameManager.OnGameFinished -= OnGameFinished;
+            _gameManager.OnGameDisconnected -= OnGameDisconnected;
         }
     }
 }

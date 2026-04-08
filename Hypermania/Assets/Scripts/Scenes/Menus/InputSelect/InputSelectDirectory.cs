@@ -61,6 +61,7 @@ namespace Scenes.Menus.InputSelect
                 Controls = _controlsConfigs?.Length >= 1 ? _controlsConfigs[0] : null,
             };
             options.InfoOptions = new InfoOptions { ShowFrameData = false };
+            options.EnableMania = true;
 
             SessionDirectory.Options = options;
             SceneLoader
@@ -96,6 +97,7 @@ namespace Scenes.Menus.InputSelect
                 };
             }
             options.InfoOptions = new InfoOptions { ShowFrameData = SessionDirectory.Config == GameConfig.Training };
+            options.EnableMania = true;
 
             SessionDirectory.Options = options;
             SceneLoader
