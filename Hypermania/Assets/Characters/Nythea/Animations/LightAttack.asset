@@ -207,14 +207,14 @@ MonoBehaviour:
             rawValue: 0
     - CenterLocal:
         x:
-          rawValue: 1058334044
+          rawValue: 1058861235
         y:
           rawValue: 1065824739
       SizeLocal:
         x:
-          rawValue: 1055666420
+          rawValue: 1057369896
         y:
-          rawValue: 1038937712
+          rawValue: 1038937696
       Props:
         Kind: 1
         AttackKind: 0
@@ -292,14 +292,14 @@ MonoBehaviour:
             rawValue: 0
     - CenterLocal:
         x:
-          rawValue: 1058334044
+          rawValue: 1058861235
         y:
           rawValue: 1065824739
       SizeLocal:
         x:
-          rawValue: 1055666420
+          rawValue: 1057369896
         y:
-          rawValue: 1038937712
+          rawValue: 1038937696
       Props:
         Kind: 1
         AttackKind: 0
@@ -377,14 +377,14 @@ MonoBehaviour:
             rawValue: 0
     - CenterLocal:
         x:
-          rawValue: 1058334044
+          rawValue: 1058861235
         y:
           rawValue: 1065824739
       SizeLocal:
         x:
-          rawValue: 1055666420
+          rawValue: 1057369896
         y:
-          rawValue: 1038937712
+          rawValue: 1038937696
       Props:
         Kind: 1
         AttackKind: 0
@@ -462,14 +462,14 @@ MonoBehaviour:
             rawValue: 0
     - CenterLocal:
         x:
-          rawValue: 1058334044
+          rawValue: 1058861235
         y:
           rawValue: 1065824739
       SizeLocal:
         x:
-          rawValue: 1055666420
+          rawValue: 1057369896
         y:
-          rawValue: 1038937712
+          rawValue: 1038937696
       Props:
         Kind: 1
         AttackKind: 0
@@ -547,14 +547,14 @@ MonoBehaviour:
             rawValue: 0
     - CenterLocal:
         x:
-          rawValue: 1058334044
+          rawValue: 1058861235
         y:
           rawValue: 1065824739
       SizeLocal:
         x:
-          rawValue: 1055666420
+          rawValue: 1057369896
         y:
-          rawValue: 1038937712
+          rawValue: 1038937696
       Props:
         Kind: 1
         AttackKind: 0
