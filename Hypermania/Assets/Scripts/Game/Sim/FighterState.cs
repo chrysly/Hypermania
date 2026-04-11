@@ -44,6 +44,15 @@ namespace Game.Sim
         public int NumVictories;
         public bool GrabConnected;
 
+        /// <summary>
+        /// Set when this fighter is in hitstun while a mania is active. Keeps
+        /// the fighter treated as non-actionable (and prevents the combo count
+        /// from resetting) even after <see cref="TickStateMachine"/> returns
+        /// them to <see cref="CharacterState.Idle"/>, until the mania ends.
+        /// Cleared when the mania ends or the round resets.
+        /// </summary>
+        public bool LockedHitstun;
+
         public int Index { get; private set; }
         public CharacterState State { get; private set; }
         public Frame StateStart { get; private set; }
@@ -95,34 +104,16 @@ namespace Game.Sim
         public bool DashedLastRealFrame =>
             StateChangedThisRealFrame && (State == CharacterState.BackDash || State == CharacterState.ForwardDash);
 
+        /// <summary>
+        /// Whether the fighter is actionable this frame. Mirrors
+        /// <see cref="CharacterStateExtensions.IsActionable"/> but additionally
+        /// returns false while <see cref="LockedHitstun"/> is set, so a fighter
+        /// whose hitstun rolled over into a mania stays locked down (no new
+        /// inputs, no combo reset, no blocking) until the mania ends.
+        /// </summary>
+        public bool Actionable => !LockedHitstun && State.IsActionable();
+
         public SVector2 StoredJumpVelocity;
-
-        public bool IsAerialAttack =>
-            State == CharacterState.LightAerial
-            || State == CharacterState.MediumAerial
-            || State == CharacterState.SuperAerial
-            || State == CharacterState.SpecialAerial;
-
-        public bool IsAerial =>
-            IsAerialAttack
-            || State == CharacterState.Jump
-            || State == CharacterState.PreJump
-            || State == CharacterState.Falling;
-
-        public bool IsDash =>
-            State == CharacterState.BackAirDash
-            || State == CharacterState.ForwardAirDash
-            || State == CharacterState.ForwardDash
-            || State == CharacterState.BackDash;
-
-        public bool Actionable => State == CharacterState.Jump || State == CharacterState.Falling || GroundedActionable;
-
-        public bool GroundedActionable =>
-            State == CharacterState.Idle
-            || State == CharacterState.ForwardWalk
-            || State == CharacterState.BackWalk
-            || State == CharacterState.Running
-            || State == CharacterState.Crouch;
 
         public SVector2 ForwardVector => FacingDir == FighterFacing.Left ? SVector2.left : SVector2.right;
         public SVector2 BackwardVector => FacingDir == FighterFacing.Left ? SVector2.right : SVector2.left;
@@ -157,6 +148,7 @@ namespace Game.Sim
                 AirDashCount = 0,
                 Victories = new VictoryKind[lives],
                 NumVictories = 0,
+                LockedHitstun = false,
             };
             return state;
         }
@@ -171,6 +163,7 @@ namespace Game.Sim
             RhythmCancelInputEnd = Frame.NullFrame;
             ImmunityHash = 0;
             ComboedCount = 0;
+            LockedHitstun = false;
             InputH.Clear(); // Clear, don't want to read input from a previous round.
             // TODO: character dependent?
             Burst = 0;
@@ -179,8 +172,17 @@ namespace Game.Sim
             FacingDir = facingDirection;
         }
 
-        public void DoFrameStart(GameOptions options)
+        public void DoFrameStart(GameOptions options, bool maniaActive)
         {
+            // Latch the mania hitstun lock: if this fighter is currently in
+            // hitstun while a mania is running, they must remain treated as
+            // non-actionable for the rest of the mania even after
+            // TickStateMachine transitions them out of CharacterState.Hit.
+            if (maniaActive && State == CharacterState.Hit)
+            {
+                LockedHitstun = true;
+            }
+
             if (Actionable)
             {
                 ComboedCount = 0;
@@ -198,7 +200,7 @@ namespace Game.Sim
 
         public bool OnGround(GameOptions options) => Position.y > options.Global.GroundY ? false : true;
 
-        public FighterLocation Location => IsAerial ? FighterLocation.Airborne : FighterLocation.Grounded;
+        public FighterLocation Location => State.IsGrounded() ? FighterLocation.Grounded : FighterLocation.Airborne;
 
         public FighterAttackLocation AttackLocation
         {
@@ -280,7 +282,7 @@ namespace Game.Sim
             if (frame >= StateEnd)
             {
                 // TODO: is best place here?
-                if (IsDash)
+                if (State.IsDash())
                 {
                     Velocity.x = 0;
                 }
@@ -336,7 +338,7 @@ namespace Game.Sim
                     && self.InputH.PressedRecently(InputFlags.Dash, options.Global.Input.InputBufferWindow)
                 );
 
-            if (GroundedActionable || isRhythmCancel)
+            if (State.IsGroundedActionable() || (State.IsGrounded() && isRhythmCancel))
             {
                 if (InputH.IsHeld(InputFlags.Up))
                 {
@@ -438,7 +440,7 @@ namespace Game.Sim
                     return;
                 }
             }
-            else if (State == CharacterState.Jump || State == CharacterState.Falling || isRhythmCancel)
+            else if (State == CharacterState.Jump || State == CharacterState.Falling || (State.IsAerial() && isRhythmCancel))
             {
                 if (Velocity.y < 0)
                 {
@@ -598,7 +600,7 @@ namespace Game.Sim
             // update to the dash's own [StateStart, StateEnd) window so the
             // dash only ever moves for exactly dashTicks frames, matching the
             // combo generator's beatOffset == 0 simulation.
-            if (IsDash && (frame < StateStart || frame >= StateEnd))
+            if (State.IsDash() && (frame < StateStart || frame >= StateEnd))
             {
                 return;
             }
@@ -674,7 +676,7 @@ namespace Game.Sim
                 return;
             }
 
-            if (IsAerialAttack)
+            if (State.IsAerialAttack())
             {
                 // TODO: apply some landing lag here
                 SetState(

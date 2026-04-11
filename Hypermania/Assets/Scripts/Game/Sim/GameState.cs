@@ -98,6 +98,18 @@ namespace Game.Sim
         public Frame ModeStart;
 
         /// <summary>
+        /// Attacker index whose rhythm combo should be started at the end of
+        /// the current <see cref="Advance"/> call. -1 when nothing is pending.
+        /// DoCollisionStep just records the attacker here; the actual combo
+        /// generation and note queueing runs after <see cref="FighterState.UpdatePosition"/>
+        /// so that the combo generator's cloned snapshot already has frame
+        /// F's velocity integration applied — otherwise the generator's sim
+        /// would be one <c>UpdatePosition</c> tick behind the real game and
+        /// predicted hits at the edge of a move's range could whiff in play.
+        /// </summary>
+        public int PendingRhythmComboAttacker;
+
+        /// <summary>
         /// Use this static builder instead of the constructor for creating new GameStates. This is because MemoryPack,
         /// which we use to serialize the GameState, places some funky restrictions on the constructor's paratmeter
         /// list.
@@ -119,6 +131,7 @@ namespace Game.Sim
                 HypeMeter = (sfloat)0f,
                 GameMode = GameMode.Countdown,
                 SpeedRatio = 1,
+                PendingRhythmComboAttacker = -1,
             };
             for (int i = 0; i < options.Players.Length; i++)
             {
@@ -180,6 +193,9 @@ namespace Game.Sim
             RoundStart = SimFrame;
             SpeedRatio = 1;
             GameMode = GameMode.Countdown;
+            // Defensive: a round ending mid-combo-startup shouldn't leak the
+            // pending attacker into the next round.
+            PendingRhythmComboAttacker = -1;
         }
 
         private void DoCountdown(GameOptions options, Span<GameInput> outInputs)
@@ -291,9 +307,10 @@ namespace Game.Sim
 
             SimFrame += 1;
 
+            bool maniaActive = GameMode == GameMode.Mania || GameMode == GameMode.ManiaStart;
             for (int i = 0; i < Fighters.Length; i++)
             {
-                Fighters[i].DoFrameStart(options);
+                Fighters[i].DoFrameStart(options, maniaActive);
             }
 
             // Tick the state machine, making the character idle if an animation/stun finishes
@@ -409,6 +426,7 @@ namespace Game.Sim
                         {
                             Manias[j].End();
                         }
+                        ClearLockedHitstun();
 
                         return;
                     }
@@ -435,6 +453,28 @@ namespace Game.Sim
             {
                 Fighters[i].ApplyAerialCancel(SimFrame, options, options.Players[i].Character);
             }
+
+            // Execute a pending rhythm combo that was queued by
+            // DoCollisionStep earlier this frame. Running the generator
+            // here (rather than inline during DoCollisionStep) means the
+            // clone it receives already has frame F's UpdatePosition,
+            // hype, and aerial-cancel steps applied, so its internal
+            // simulation starts from the exact state the real game will
+            // resume from on frame F+1.
+            if (PendingRhythmComboAttacker >= 0)
+            {
+                int attackerIndex = PendingRhythmComboAttacker;
+                PendingRhythmComboAttacker = -1;
+                HitstopFramesRemaining = ComboManager.StartRhythmCombo(
+                    RealFrame,
+                    ref Manias[attackerIndex],
+                    Fighters[attackerIndex].FacingDir,
+                    options,
+                    options.Players[attackerIndex].Character,
+                    this,
+                    attackerIndex
+                );
+            }
         }
 
         public bool FightersDead()
@@ -448,6 +488,14 @@ namespace Game.Sim
             }
 
             return false;
+        }
+
+        private void ClearLockedHitstun()
+        {
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                Fighters[i].LockedHitstun = false;
+            }
         }
 
         private (bool, int) DoManiaStep((GameInput input, InputStatus status)[] inputs, Span<GameInput> outInputs)
@@ -464,6 +512,7 @@ namespace Game.Sim
                     {
                         case ManiaEventKind.End:
                             GameMode = GameMode.Fighting;
+                            ClearLockedHitstun();
                             break;
                         case ManiaEventKind.Hit:
                             outInputs[i].Flags |= ev.Note.HitInput;
@@ -472,6 +521,7 @@ namespace Game.Sim
                         case ManiaEventKind.Missed:
                             GameMode = GameMode.Fighting;
                             Manias[i].End();
+                            ClearLockedHitstun();
                             break;
                     }
                 }
@@ -653,19 +703,22 @@ namespace Game.Sim
                         && !PhysicsCtx.HurtHitCollisions.ContainsKey((owners.Item2, owners.Item1))
                         && GameMode == GameMode.Fighting
                         && outcome.Kind == HitKind.Hit
+                        && PendingRhythmComboAttacker < 0
                     )
                     {
+                        // Defer the actual combo generation until after the
+                        // rest of this Advance finishes (crucially, after
+                        // UpdatePosition). That way the clone the combo
+                        // generator receives already has frame F's velocity
+                        // integration applied and its simulation stays in
+                        // lockstep with the real game, instead of running
+                        // one UpdatePosition tick behind. We still transition
+                        // to ManiaStart immediately so the death check below
+                        // (which gates on GameMode == Fighting/Mania) is
+                        // suppressed and behaves exactly as before.
                         GameMode = GameMode.ManiaStart;
                         ModeStart = RealFrame;
-                        HitstopFramesRemaining = ComboManager.StartRhythmCombo(
-                            RealFrame,
-                            ref Manias[owners.Item1],
-                            Fighters[owners.Item1].FacingDir,
-                            options,
-                            options.Players[owners.Item1].Character,
-                            this,
-                            owners.Item1
-                        );
+                        PendingRhythmComboAttacker = owners.Item1;
                         // TODO: show mania screen only after the maximum rollback frames to ensure no visual artifacting
                     }
                 }
