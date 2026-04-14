@@ -26,6 +26,8 @@ namespace Game.Sim
     public class PlayerOptions
     {
         public bool HealOnActionable;
+        public bool SuperMaxOnActionable;
+        public bool BurstMaxOnActionable;
         public bool Immortal;
         public CharacterConfig Character;
         public int SkinIndex;
@@ -190,7 +192,14 @@ namespace Game.Sim
 
             ModeStart = Frame.NullFrame;
             HypeMeter = (sfloat)0.0f;
-            RoundStart = SimFrame;
+            // Delay countdown start until the next music beat so the 1-2-1-2-3-4-Go beats
+            // line up with the song. SimFrame and RealFrame advance in lockstep during
+            // Countdown (SpeedRatio=1, no hitstop), so aligning RealFrame here keeps every
+            // subsequent beat transition on-beat.
+            var audio = options.Global.Audio;
+            int phase = ((RealFrame.No - audio.FirstMusicalBeat.No) % audio.FramesPerBeat + audio.FramesPerBeat) % audio.FramesPerBeat;
+            int delay = (audio.FramesPerBeat - phase) % audio.FramesPerBeat;
+            RoundStart = SimFrame + delay;
             SpeedRatio = 1;
             GameMode = GameMode.Countdown;
             // Defensive: a round ending mid-combo-startup shouldn't leak the
@@ -331,6 +340,9 @@ namespace Game.Sim
                     .ApplyMovementState(SimFrame, options, rhythmCancel.shouldRhythmCancel, rhythmCancel.beatOffset);
             }
 
+            bool wasSuper0 = Fighters[0].IsSuperAttack;
+            bool wasSuper1 = Fighters[1].IsSuperAttack;
+
             // If a player applies inputs to start a state at the start of the frame, we should apply those immediately
             for (int i = 0; i < Fighters.Length; i++)
             {
@@ -342,6 +354,16 @@ namespace Game.Sim
                         rhythmCancel.shouldRhythmCancel,
                         rhythmCancel.beatOffset
                     );
+            }
+
+            bool anySuperStarted = (!wasSuper0 && Fighters[0].IsSuperAttack)
+                || (!wasSuper1 && Fighters[1].IsSuperAttack);
+            if (anySuperStarted)
+            {
+                HitstopFramesRemaining = Mathsf.Max(
+                    HitstopFramesRemaining,
+                    options.Global.SuperDisplayHitstopTicks + options.Global.SuperPostDisplayHitstopTicks
+                );
             }
 
             // Check if any fighter should spawn a projectile this frame

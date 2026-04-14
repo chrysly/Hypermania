@@ -158,6 +158,24 @@ namespace Game.Sim
             return state;
         }
 
+        public static FighterState CreateForDisplay(
+            CharacterState animState,
+            Frame stateStart,
+            SVector2 position,
+            FighterFacing facing
+        )
+        {
+            return new FighterState
+            {
+                Position = position,
+                FacingDir = facing,
+                State = animState,
+                StateStart = stateStart,
+                StateEnd = Frame.Infinity,
+                RhythmCancelInputEnd = Frame.NullFrame,
+            };
+        }
+
         public void RoundReset(CharacterConfig config, SVector2 position, FighterFacing facingDirection)
         {
             Position = position;
@@ -196,6 +214,14 @@ namespace Game.Sim
                 if (options.Players[Index].HealOnActionable)
                 {
                     Health = options.Players[Index].Character.Health;
+                }
+                if (options.Players[Index].SuperMaxOnActionable)
+                {
+                    Super = options.Players[Index].Character.SuperMax;
+                }
+                if (options.Players[Index].BurstMaxOnActionable)
+                {
+                    Burst = options.Players[Index].Character.BurstMax;
                 }
             }
 

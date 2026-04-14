@@ -41,6 +41,8 @@ MonoBehaviour:
   CameraPadding:
     rawValue: 1050253722
   RoundEndTicks: 240
+  SuperDisplayHitstopTicks: 40
+  SuperPostDisplayHitstopTicks: 10
   FloatingFactor:
     rawValue: 1066192077
   ManiaSlowTicks: 45
@@ -57,3 +59,4 @@ MonoBehaviour:
   _configs:
     values:
     - {fileID: 11400000, guid: b193994fbc9b652d2985b409cb9f63cf, type: 2}
+    - {fileID: 11400000, guid: 53758779623dce9459d3eee5c2432b39, type: 2}

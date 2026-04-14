@@ -30,7 +30,7 @@ namespace Game.View.Overlay
             int elapsed = currentFrame.No - roundStart.No;
             int totalCountdown = audio.BeatsToFrame(8);
 
-            bool visible = elapsed <= totalCountdown + audio.FramesPerBeat / 2;
+            bool visible = elapsed >= 0 && elapsed <= totalCountdown + audio.FramesPerBeat / 2;
             gameObject.SetActive(visible);
             if (!visible)
             {

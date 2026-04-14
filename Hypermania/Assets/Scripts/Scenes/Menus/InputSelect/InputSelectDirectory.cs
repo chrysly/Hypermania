@@ -53,6 +53,8 @@ namespace Scenes.Menus.InputSelect
                     SkinIndex = i,
                     Character = _nytheaConfig,
                     HealOnActionable = SessionDirectory.Config == GameConfig.Training,
+                    SuperMaxOnActionable = SessionDirectory.Config == GameConfig.Training,
+                    BurstMaxOnActionable = SessionDirectory.Config == GameConfig.Training,
                 };
             }
             options.LocalPlayers[0] = new LocalPlayerOptions
@@ -89,6 +91,8 @@ namespace Scenes.Menus.InputSelect
                     SkinIndex = i,
                     Character = _nytheaConfig,
                     HealOnActionable = SessionDirectory.Config == GameConfig.Training,
+                    SuperMaxOnActionable = SessionDirectory.Config == GameConfig.Training,
+                    BurstMaxOnActionable = SessionDirectory.Config == GameConfig.Training,
                 };
                 options.LocalPlayers[i] = new LocalPlayerOptions
                 {

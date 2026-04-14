@@ -22,7 +22,7 @@ namespace Game.View.Projectiles
 
         public virtual void Init(CharacterConfig characterConfig, int skinIndex)
         {
-            _spriteLibrary.spriteLibraryAsset = characterConfig.Skins[skinIndex];
+            _spriteLibrary.spriteLibraryAsset = characterConfig.Skins[skinIndex].SpriteLibrary;
         }
 
         public abstract void Render(Frame simFrame, in ProjectileState state);

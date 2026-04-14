@@ -263,6 +263,16 @@ namespace Game.Sim
                 //  - If the defender is airborne, try jump first (grounded
                 //    moves struggle to convert on an airborne target).
                 //  - Otherwise try dash first.
+
+                // Candidate trials left _working advanced up to MAX_TEST_FRAMES
+                // past the beat, during which FaceTowards (and, for grab
+                // candidates, back-throw) can have flipped the attacker's
+                // FacingDir. Restore to the pristine beat snapshot so the
+                // fallback's forward-direction and defender-airborne reads
+                // reflect the beat itself, not the tail of the last probed
+                // attack — otherwise the emitted Dash/Up note can point
+                // backwards on a cross-up.
+                RestoreWorking();
                 InputFlags forwardInput = _working.Fighters[_attackerIndex].ForwardInput;
                 InputFlags dashMove = InputFlags.Dash | forwardInput;
                 InputFlags jumpMove = InputFlags.Up | forwardInput;
