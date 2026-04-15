@@ -158,6 +158,24 @@ namespace Game.Sim
             return state;
         }
 
+        public static FighterState CreateForDisplay(
+            CharacterState animState,
+            Frame stateStart,
+            SVector2 position,
+            FighterFacing facing
+        )
+        {
+            return new FighterState
+            {
+                Position = position,
+                FacingDir = facing,
+                State = animState,
+                StateStart = stateStart,
+                StateEnd = Frame.Infinity,
+                RhythmCancelInputEnd = Frame.NullFrame,
+            };
+        }
+
         public void RoundReset(CharacterConfig config, SVector2 position, FighterFacing facingDirection)
         {
             Position = position;
@@ -196,6 +214,14 @@ namespace Game.Sim
                 if (options.Players[Index].HealOnActionable)
                 {
                     Health = options.Players[Index].Character.Health;
+                }
+                if (options.Players[Index].SuperMaxOnActionable)
+                {
+                    Super = options.Players[Index].Character.SuperMax;
+                }
+                if (options.Players[Index].BurstMaxOnActionable)
+                {
+                    Burst = options.Players[Index].Character.BurstMax;
                 }
             }
 
@@ -336,7 +362,7 @@ namespace Game.Sim
             // records this so its mechanics all unfold from this single
             // point, making the resulting combo independent of where in the
             // input window the player actually pressed.
-            Frame rhythmCancelInputEnd = frame + (-beatOffset + options.Global.Input.BeatCancelWindow);
+            Frame rhythmCancelInputEnd = frame + (-beatOffset + (int)options.Players[Index].BeatCancelWindow);
             if (isRhythmCancel)
             {
                 startFrame = rhythmCancelInputEnd;
@@ -383,7 +409,7 @@ namespace Game.Sim
                     Frame endFrame = frame + config.GetHitboxData(CharacterState.PreJump).TotalTicks;
                     if (isRhythmCancel)
                     {
-                        endFrame = frame - beatOffset + options.Global.Input.BeatCancelWindow;
+                        endFrame = frame - beatOffset + (int)options.Players[Index].BeatCancelWindow;
                     }
 
                     // handle the case when jump is pressed on the last frame
@@ -454,7 +480,11 @@ namespace Game.Sim
                     return;
                 }
             }
-            else if (State == CharacterState.Jump || State == CharacterState.Falling || (State.IsAerial() && isRhythmCancel))
+            else if (
+                State == CharacterState.Jump
+                || State == CharacterState.Falling
+                || (State.IsAerial() && isRhythmCancel)
+            )
             {
                 if (Velocity.y < 0)
                 {
@@ -519,7 +549,8 @@ namespace Game.Sim
             GameOptions options,
             CharacterConfig config,
             bool isRhythmCancel,
-            int beatOffset
+            int beatOffset,
+            GameMode gameMode
         )
         {
             if (State == CharacterState.Hit)
@@ -542,15 +573,19 @@ namespace Game.Sim
 
             // Double-tap heavy: if in a heavy attack and heavy pressed again within the super window, mark as super
             int superWindow = options.Global.Input.SuperAttackWindow;
-            bool isHeavyAttackState = State == CharacterState.HeavyAttack
+            bool isHeavyAttackState =
+                State == CharacterState.HeavyAttack
                 || State == CharacterState.HeavyAerial
                 || State == CharacterState.HeavyCrouching;
-            if (isHeavyAttackState
+            if (
+                isHeavyAttackState
                 && !IsSuperAttack
                 && InputH.PressedRecently(InputFlags.HeavyAttack, bufferWindow)
                 && simFrame - StateStart > bufferWindow
                 && simFrame - StateStart <= superWindow
-                && Super >= options.Players[Index].Character.SuperMax)
+                && Super >= options.Players[Index].Character.SuperMax
+                && gameMode == GameMode.Fighting
+            )
             {
                 IsSuperAttack = true;
                 Super = 0;
@@ -588,7 +623,7 @@ namespace Game.Sim
                     if (isRhythmCancel && config.GetHitboxData(state).IsValidAttack(frames))
                     {
                         // a negative beat offset means the input was early, which means we should start it later, so we negate beatoffset
-                        startFrame += -beatOffset - frames[0] + options.Global.Input.BeatCancelWindow;
+                        startFrame += -beatOffset - frames[0] + (int)options.Players[Index].BeatCancelWindow;
                         rhythmCancelAdjusted = true;
                     }
 
@@ -602,8 +637,7 @@ namespace Game.Sim
                         // matter where inside the window the player pressed.
                         // Two different-timed presses on the same note then
                         // produce identical combo behaviour.
-                        RhythmCancelInputEnd =
-                            simFrame + (-beatOffset + options.Global.Input.BeatCancelWindow);
+                        RhythmCancelInputEnd = simFrame + (-beatOffset + (int)options.Players[Index].BeatCancelWindow);
                     }
                     if (state == CharacterState.Grab)
                     {
@@ -643,8 +677,7 @@ namespace Game.Sim
             // late presses on the same note should produce exactly the same
             // frame-data progression afterwards, so the combo simulator's
             // predictions stay correct regardless of player timing.
-            bool rhythmCancelLockout =
-                RhythmCancelInputEnd != Frame.NullFrame && frame < RhythmCancelInputEnd;
+            bool rhythmCancelLockout = RhythmCancelInputEnd != Frame.NullFrame && frame < RhythmCancelInputEnd;
             if (!rhythmCancelLockout)
             {
                 // Apply gravity if not grounded and not in airdash

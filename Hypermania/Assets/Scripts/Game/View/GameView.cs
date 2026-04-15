@@ -30,6 +30,7 @@ namespace Game.View
             public ManiaView ManiaView;
             public ComboCountView ComboCountView;
             public VictoryMarkView VictoryMarkView;
+            public SuperDisplayView SuperDisplayView;
         }
 
         [Serializable]
@@ -94,9 +95,16 @@ namespace Game.View
                 _fighters[i].Init(config, options.Players[i].SkinIndex);
 
                 _playerParams[i].ManiaView.Init(options.Global.Audio);
+                _playerParams[i].HealthBarView.Init(config, options.Players[i].SkinIndex);
                 _playerParams[i].HealthBarView.SetMaxHealth((float)config.Health);
                 _playerParams[i].BurstBarView.SetMaxValue((float)config.BurstMax);
                 _playerParams[i].SuperBarView.SetMaxValue((float)config.SuperMax);
+                _playerParams[i]
+                    .SuperDisplayView.Init(
+                        config,
+                        options.Players[i].SkinIndex,
+                        options.Global.SuperPostDisplayHitstopTicks
+                    );
             }
 
             _projectileViews = new ProjectileView[GameState.MAX_PROJECTILES];
@@ -219,6 +227,12 @@ namespace Game.View
             _params.BoxVisualizer.gameObject.SetActive(options.InfoOptions.ShowBoxes);
             if (options.InfoOptions.ShowBoxes)
                 _params.BoxVisualizer.Render(state, options, _fighters);
+
+            for (int i = 0; i < _options.Players.Length; i++)
+            {
+                if (_playerParams[i].SuperDisplayView != null)
+                    _playerParams[i].SuperDisplayView.Render(state, state.Fighters[i], _params.SfxManager, i);
+            }
         }
 
         public void RollbackRender(in GameState state)
@@ -272,8 +286,8 @@ namespace Game.View
         private int GetManiaViewIndex(in GameState state, int fighterIndex)
         {
             int other = fighterIndex ^ 1;
-            bool toRightOfOpponent = (float)state.Fighters[fighterIndex].Position.x
-                                   > (float)state.Fighters[other].Position.x;
+            bool toRightOfOpponent =
+                (float)state.Fighters[fighterIndex].Position.x > (float)state.Fighters[other].Position.x;
             return toRightOfOpponent ? 0 : 1;
         }
 

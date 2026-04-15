@@ -11,7 +11,8 @@ namespace Game.View.Overlay
     [RequireComponent(typeof(AudioSource))]
     public class RoundCountdownView : MonoBehaviour
     {
-        [SerializeField] private AudioClip _countdownSfx;
+        [SerializeField]
+        private AudioClip _countdownSfx;
 
         private TMP_Text _roundCD;
         private AudioSource _audioSource;
@@ -30,7 +31,7 @@ namespace Game.View.Overlay
             int elapsed = currentFrame.No - roundStart.No;
             int totalCountdown = audio.BeatsToFrame(8);
 
-            bool visible = elapsed <= totalCountdown + audio.FramesPerBeat / 2;
+            bool visible = elapsed >= 0 && elapsed <= totalCountdown + audio.FramesPerBeat / 2;
             gameObject.SetActive(visible);
             if (!visible)
             {

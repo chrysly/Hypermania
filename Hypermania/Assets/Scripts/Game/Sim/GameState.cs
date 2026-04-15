@@ -22,13 +22,36 @@ namespace Game.Sim
         End, // after game is done
     }
 
+    public enum ComboMode
+    {
+        Assisted,
+        Freestyle,
+    }
+
+    public enum ManiaDifficulty
+    {
+        Normal,
+        Hard,
+    }
+
+    public enum BeatCancelWindow
+    {
+        Medium = 5,
+        Hard = 3,
+    }
+
     [Serializable]
     public class PlayerOptions
     {
         public bool HealOnActionable;
+        public bool SuperMaxOnActionable;
+        public bool BurstMaxOnActionable;
         public bool Immortal;
         public CharacterConfig Character;
         public int SkinIndex;
+        public ComboMode ComboMode;
+        public ManiaDifficulty ManiaDifficulty;
+        public BeatCancelWindow BeatCancelWindow = BeatCancelWindow.Medium;
     }
 
     [Serializable]
@@ -52,7 +75,6 @@ namespace Game.Sim
         public PlayerOptions[] Players;
         public LocalPlayerOptions[] LocalPlayers;
         public InfoOptions InfoOptions;
-        public bool EnableMania;
         public bool AlwaysRhythmCancel;
     }
 
@@ -144,12 +166,13 @@ namespace Game.Sim
                     facing,
                     3
                 );
+                int beatWindow = (int)options.Players[i].BeatCancelWindow;
                 state.Manias[i] = ManiaState.Create(
                     new ManiaConfig
                     {
                         NumKeys = 4,
-                        HitHalfRange = options.Global.Input.BeatCancelWindow,
-                        MissHalfRange = options.Global.Input.BeatCancelWindow + 3,
+                        HitHalfRange = beatWindow,
+                        MissHalfRange = beatWindow + 3,
                     }
                 );
             }
@@ -190,7 +213,17 @@ namespace Game.Sim
 
             ModeStart = Frame.NullFrame;
             HypeMeter = (sfloat)0.0f;
-            RoundStart = SimFrame;
+            // Delay countdown start until the next whole-note (measure downbeat) so the
+            // 1-2-1-2-3-4-Go sequence always begins on beat 1 of a 4/4 bar. SimFrame and
+            // RealFrame advance in lockstep during Countdown (SpeedRatio=1, no hitstop),
+            // so aligning RealFrame here keeps every subsequent beat transition on-beat.
+            var audio = options.Global.Audio;
+            int framesPerWholeNote = audio.FramesPerBeat * 4;
+            int phase =
+                ((RealFrame.No - audio.FirstMusicalBeat.No) % framesPerWholeNote + framesPerWholeNote)
+                % framesPerWholeNote;
+            int delay = (framesPerWholeNote - phase) % framesPerWholeNote;
+            RoundStart = SimFrame + delay;
             SpeedRatio = 1;
             GameMode = GameMode.Countdown;
             // Defensive: a round ending mid-combo-startup shouldn't leak the
@@ -331,6 +364,9 @@ namespace Game.Sim
                     .ApplyMovementState(SimFrame, options, rhythmCancel.shouldRhythmCancel, rhythmCancel.beatOffset);
             }
 
+            bool wasSuper0 = Fighters[0].IsSuperAttack;
+            bool wasSuper1 = Fighters[1].IsSuperAttack;
+
             // If a player applies inputs to start a state at the start of the frame, we should apply those immediately
             for (int i = 0; i < Fighters.Length; i++)
             {
@@ -340,8 +376,19 @@ namespace Game.Sim
                         options,
                         options.Players[i].Character,
                         rhythmCancel.shouldRhythmCancel,
-                        rhythmCancel.beatOffset
+                        rhythmCancel.beatOffset,
+                        GameMode
                     );
+            }
+
+            bool anySuperStarted =
+                (!wasSuper0 && Fighters[0].IsSuperAttack) || (!wasSuper1 && Fighters[1].IsSuperAttack);
+            if (anySuperStarted)
+            {
+                HitstopFramesRemaining = Mathsf.Max(
+                    HitstopFramesRemaining,
+                    options.Global.SuperDisplayHitstopTicks + options.Global.SuperPostDisplayHitstopTicks
+                );
             }
 
             // Check if any fighter should spawn a projectile this frame
@@ -702,7 +749,10 @@ namespace Game.Sim
                     //owners[0] hits owners[1]
                     HitOutcome outcome = HandleCollision(options, collision);
 
-                    HitstopFramesRemaining = Mathsf.Min(Mathsf.Max(outcome.Props.HitstopTicks, HitstopFramesRemaining), 12);
+                    HitstopFramesRemaining = Mathsf.Min(
+                        Mathsf.Max(outcome.Props.HitstopTicks, HitstopFramesRemaining),
+                        12
+                    );
 
                     var attackerBox = collision.BoxA.Owner == owners.Item1 ? collision.BoxA : collision.BoxB;
 
@@ -722,7 +772,7 @@ namespace Game.Sim
 
                     //to start a rhythm combo, we must sure that the move was not traded
                     if (
-                        options.EnableMania
+                        options.Players[owners.Item1].ComboMode == ComboMode.Assisted
                         && !PhysicsCtx.HurtHitCollisions.ContainsKey((owners.Item2, owners.Item1))
                         && GameMode == GameMode.Fighting
                         && outcome.Kind == HitKind.Hit
@@ -745,7 +795,7 @@ namespace Game.Sim
                         PendingRhythmComboAttacker = owners.Item1;
                         // TODO: show mania screen only after the maximum rollback frames to ensure no visual artifacting
                     }
-                    
+
                     // Add super checking to start a combo so that the combo only starts if the meter is alr at max
                     if (outcome.Kind == HitKind.Hit && GameMode == GameMode.Fighting)
                     {

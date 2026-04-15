@@ -136,32 +136,30 @@ namespace Game.View.Overlay
 
             _curFrameBar.GetComponent<RectTransform>().anchoredPosition = new Vector2((baseIdx + 1) * _cellWidth, 0f);
 
-            if (
-                IsOnBeat(
-                    state.RealFrame,
-                    options.Global.Audio.FirstMusicalBeat,
-                    options.Global.Audio.FramesPerBeat,
-                    options.Global.Input.BeatCancelWindow
-                )
-            )
-            {
-                _cells[2, baseIdx].SetType(FrameType.Active);
-            }
-            else
-            {
-                _cells[2, baseIdx].SetType(FrameType.Neutral);
-            }
+            _cells[2, baseIdx].SetType(InActiveManiaHitWindow(state) ? FrameType.Active : FrameType.Neutral);
         }
 
-        private static bool IsOnBeat(Frame frame, Frame firstBeat, int framesPerBeat, int window)
+        private static bool InActiveManiaHitWindow(in GameState state)
         {
-            if (framesPerBeat <= 0)
-                return false;
-            int delta = (frame - firstBeat) % framesPerBeat;
-            if (delta < 0)
-                delta += framesPerBeat;
-            int distance = delta <= framesPerBeat / 2 ? delta : framesPerBeat - delta;
-            return distance <= window;
+            for (int p = 0; p < state.Manias.Length; p++)
+            {
+                if (!state.Manias[p].Enabled(state.RealFrame))
+                    continue;
+
+                int halfRange = state.Manias[p].Config.HitHalfRange;
+                ManiaNoteChannel[] channels = state.Manias[p].Channels;
+                for (int c = 0; c < channels.Length; c++)
+                {
+                    Deque<ManiaNote> notes = channels[c].Notes;
+                    for (int n = 0; n < notes.Count; n++)
+                    {
+                        int delta = state.RealFrame - notes[n].Tick;
+                        if (delta >= -halfRange && delta <= halfRange)
+                            return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }

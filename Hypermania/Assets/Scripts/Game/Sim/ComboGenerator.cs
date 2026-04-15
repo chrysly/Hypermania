@@ -94,8 +94,7 @@ namespace Game.Sim
         /// per CharacterState. Reach is config-static so it only needs to be
         /// computed once per run.
         /// </summary>
-        private readonly Dictionary<CharacterState, sfloat> _reachCache =
-            new Dictionary<CharacterState, sfloat>();
+        private readonly Dictionary<CharacterState, sfloat> _reachCache = new Dictionary<CharacterState, sfloat>();
 
         /// <summary>
         /// Result of a single candidate trial.
@@ -134,23 +133,42 @@ namespace Game.Sim
         {
             if (noteFrames == null || noteFrames.Length == 0)
             {
-                return new GeneratedCombo
-                {
-                    Moves = new List<GeneratedComboMove>(),
-                    EndFrame = state.RealFrame,
-                };
+                return new GeneratedCombo { Moves = new List<GeneratedComboMove>(), EndFrame = state.RealFrame };
             }
             _attackerIndex = attackerIndex;
             _attackerConfig = options.Players[attackerIndex].Character;
-            _noteHitHalfRange = options.Global.Input.BeatCancelWindow;
+            _noteHitHalfRange = (int)options.Players[attackerIndex].BeatCancelWindow;
+
+            // Clone Players so we can suppress the attacker's ComboMode on the
+            // generator's copy (forcing Freestyle) without leaking the change
+            // back to the real game's shared PlayerOptions. Prevents the
+            // generator's inner simulation from recursively triggering mania
+            // when its own super-hit connects.
+            PlayerOptions[] clonedPlayers = new PlayerOptions[options.Players.Length];
+            for (int p = 0; p < options.Players.Length; p++)
+            {
+                clonedPlayers[p] = options.Players[p];
+            }
+            PlayerOptions atk = options.Players[attackerIndex];
+            clonedPlayers[attackerIndex] = new PlayerOptions
+            {
+                HealOnActionable = atk.HealOnActionable,
+                SuperMaxOnActionable = atk.SuperMaxOnActionable,
+                BurstMaxOnActionable = atk.BurstMaxOnActionable,
+                Immortal = atk.Immortal,
+                Character = atk.Character,
+                SkinIndex = atk.SkinIndex,
+                ComboMode = ComboMode.Freestyle,
+                ManiaDifficulty = atk.ManiaDifficulty,
+                BeatCancelWindow = atk.BeatCancelWindow,
+            };
 
             _options = new GameOptions
             {
                 Global = options.Global,
-                Players = options.Players,
+                Players = clonedPlayers,
                 LocalPlayers = options.LocalPlayers,
                 InfoOptions = options.InfoOptions,
-                EnableMania = false,
                 // Default off. Toggled to true only on the exact single frame
                 // an attacker input is applied (either in TryCandidate's frame
                 // 0 or when applying a chosen move in ApplyInputToWorking).
@@ -203,31 +221,22 @@ namespace Game.Sim
 
                 // Next authored note (if any) so we can reject candidates
                 // whose hitstun bleeds into its input window.
-                Frame nextBeat = (i + 1 < noteFrames.Length)
-                    ? noteFrames[i + 1]
-                    : Frame.Infinity;
+                Frame nextBeat = (i + 1 < noteFrames.Length) ? noteFrames[i + 1] : Frame.Infinity;
 
                 // Snapshot the pristine beat state so each candidate trial can
                 // revert to it before applying its own input.
                 SnapshotWorking();
 
                 candidates.Clear();
-                foreach (InputFlags atk in AttackInputs)
+                foreach (InputFlags attack in AttackInputs)
                 {
-                    TryCandidate(candidates, atk, nextBeat);
-                    TryCandidate(candidates, atk | InputFlags.Down, nextBeat);
+                    TryCandidate(candidates, attack, nextBeat);
+                    TryCandidate(candidates, attack | InputFlags.Down, nextBeat);
                 }
 
                 int hashValue = DeterministicHash(state.RealFrame.No, i);
                 bool isLastBeat = i == noteFrames.Length - 1;
-                int chosenIdx = PickBestCandidate(
-                    candidates,
-                    hasPrev,
-                    prevKb,
-                    prevReach,
-                    hashValue,
-                    isLastBeat
-                );
+                int chosenIdx = PickBestCandidate(candidates, hasPrev, prevKb, prevReach, hashValue, isLastBeat);
 
                 if (chosenIdx >= 0)
                 {
@@ -263,6 +272,16 @@ namespace Game.Sim
                 //  - If the defender is airborne, try jump first (grounded
                 //    moves struggle to convert on an airborne target).
                 //  - Otherwise try dash first.
+
+                // Candidate trials left _working advanced up to MAX_TEST_FRAMES
+                // past the beat, during which FaceTowards (and, for grab
+                // candidates, back-throw) can have flipped the attacker's
+                // FacingDir. Restore to the pristine beat snapshot so the
+                // fallback's forward-direction and defender-airborne reads
+                // reflect the beat itself, not the tail of the last probed
+                // attack — otherwise the emitted Dash/Up note can point
+                // backwards on a cross-up.
+                RestoreWorking();
                 InputFlags forwardInput = _working.Fighters[_attackerIndex].ForwardInput;
                 InputFlags dashMove = InputFlags.Dash | forwardInput;
                 InputFlags jumpMove = InputFlags.Up | forwardInput;
@@ -271,12 +290,9 @@ namespace Game.Sim
                 // attack must also satisfy the hitstop-in-window rule against
                 // its own next-note window (i.e., not chain two fallbacks'
                 // worth of hitstop into the note after nextBeat).
-                Frame beatAfterNext = (i + 2 < noteFrames.Length)
-                    ? noteFrames[i + 2]
-                    : Frame.Infinity;
+                Frame beatAfterNext = (i + 2 < noteFrames.Length) ? noteFrames[i + 2] : Frame.Infinity;
 
-                bool defenderAirborne =
-                    _working.Fighters[1 - _attackerIndex].Location == FighterLocation.Airborne;
+                bool defenderAirborne = _working.Fighters[1 - _attackerIndex].Location == FighterLocation.Airborne;
                 InputFlags firstTry = defenderAirborne ? jumpMove : dashMove;
                 InputFlags secondTry = defenderAirborne ? dashMove : jumpMove;
 
@@ -596,16 +612,7 @@ namespace Game.Sim
             int tieCount = 0;
             for (int i = 0; i < pool.Count; i++)
             {
-                if (IsEligibleForPick(
-                        pool[i],
-                        hasPrev,
-                        prevKb,
-                        prevReach,
-                        bestKb,
-                        bestIsHeavy,
-                        isLastBeat,
-                        bestTier
-                    ))
+                if (IsEligibleForPick(pool[i], hasPrev, prevKb, prevReach, bestKb, bestIsHeavy, isLastBeat, bestTier))
                     tieCount++;
             }
             if (tieCount == 0)
@@ -615,16 +622,7 @@ namespace Game.Sim
             int seen = 0;
             for (int i = 0; i < pool.Count; i++)
             {
-                if (!IsEligibleForPick(
-                        pool[i],
-                        hasPrev,
-                        prevKb,
-                        prevReach,
-                        bestKb,
-                        bestIsHeavy,
-                        isLastBeat,
-                        bestTier
-                    ))
+                if (!IsEligibleForPick(pool[i], hasPrev, prevKb, prevReach, bestKb, bestIsHeavy, isLastBeat, bestTier))
                     continue;
                 if (seen == pick)
                     return i;

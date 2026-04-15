@@ -66,15 +66,7 @@ namespace Design.Animation
 
         public override int GetHashCode() =>
             HashCode.Combine(
-                HashCode.Combine(
-                    Kind,
-                    AttackKind,
-                    HitstunTicks,
-                    Damage,
-                    BlockstunTicks,
-                    KnockdownKind,
-                    Knockback
-                ),
+                HashCode.Combine(Kind, AttackKind, HitstunTicks, Damage, BlockstunTicks, KnockdownKind, Knockback),
                 HitstopTicks,
                 BlockstopTicks,
                 GrabPosition
@@ -201,8 +193,23 @@ namespace Design.Animation
     {
         public AnimationClip Clip;
         public int TotalTicks => Frames.Count;
+        public bool AnimLoops => Clip.isLooping;
         public bool ComboEligible = true;
         public List<FrameData> Frames = new List<FrameData>();
+
+        public float GetAnimNormalizedTime(int frame)
+        {
+            int totalTicks = TotalTicks;
+            if (AnimLoops)
+            {
+                frame %= totalTicks;
+            }
+            else
+            {
+                frame = Mathf.Min(frame, totalTicks - 1);
+            }
+            return (float)frame / (totalTicks - 1);
+        }
 
         public bool BindToClip(AnimationClip clip)
         {

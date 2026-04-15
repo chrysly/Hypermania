@@ -12,7 +12,6 @@ namespace Design.Configs
         public int DashWindow;
         public int SuperJumpWindow;
         public int InputBufferWindow;
-        public int BeatCancelWindow;
         public int SuperAttackWindow;
     }
 
@@ -45,6 +44,8 @@ namespace Design.Configs
         public sfloat CameraHalfHeight = (sfloat)1.5f;
         public sfloat CameraPadding = (sfloat)0.3f;
         public int RoundEndTicks = 120;
+        public int SuperDisplayHitstopTicks = 60;
+        public int SuperPostDisplayHitstopTicks = 0;
         public sfloat FloatingFactor = (sfloat)1.3f;
         public int ManiaSlowTicks = 60;
         public int ManiaFailStunTicks = 30;
