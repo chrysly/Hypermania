@@ -29,6 +29,7 @@ namespace Design.Configs
         public Color AccentColor;
         public SpriteLibraryAsset SpriteLibrary;
         public Texture2D Portrait;
+        public Texture2D Splash;
     }
 
     [CreateAssetMenu(menuName = "Hypermania/Character Config")]
@@ -59,7 +60,7 @@ namespace Design.Configs
         public FrameData GetFrameData(CharacterState anim, int tick)
         {
             HitboxData data = GetHitboxData(anim);
-            if (data.TotalTicks == 0)
+            if (data == null || data.TotalTicks == 0)
             {
                 return new FrameData();
             }

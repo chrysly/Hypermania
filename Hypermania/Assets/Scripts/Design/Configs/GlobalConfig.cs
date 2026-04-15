@@ -12,7 +12,6 @@ namespace Design.Configs
         public int DashWindow;
         public int SuperJumpWindow;
         public int InputBufferWindow;
-        public int BeatCancelWindow;
         public int SuperAttackWindow;
     }
 

@@ -1,4 +1,5 @@
 using System;
+using Design.Animation;
 using Design.Configs;
 using Game.Sim;
 using Game.View.Events;
@@ -47,7 +48,9 @@ namespace Game.View.Fighters
             transform.localScale = new Vector3(state.FacingDir == FighterFacing.Left ? -1 : 1, 1f, 1f);
 
             CharacterState animState = state.State;
-            float normalizedTime = _characterConfig.GetHitboxData(animState).GetAnimNormalizedTime(frame - state.StateStart);
+            HitboxData data = _characterConfig.GetHitboxData(animState);
+            if (data == null) return;
+            float normalizedTime = data.GetAnimNormalizedTime(frame - state.StateStart);
             _animator.Play(animState.ToString(), 0, normalizedTime);
             _animator.Update(0f); // force pose evaluation this frame while paused
         }

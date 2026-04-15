@@ -142,15 +142,38 @@ namespace Game.Sim
             }
             _attackerIndex = attackerIndex;
             _attackerConfig = options.Players[attackerIndex].Character;
-            _noteHitHalfRange = options.Global.Input.BeatCancelWindow;
+            _noteHitHalfRange = (int)options.Players[attackerIndex].BeatCancelWindow;
+
+            // Clone Players so we can suppress the attacker's ComboMode on the
+            // generator's copy (forcing Freestyle) without leaking the change
+            // back to the real game's shared PlayerOptions. Prevents the
+            // generator's inner simulation from recursively triggering mania
+            // when its own super-hit connects.
+            PlayerOptions[] clonedPlayers = new PlayerOptions[options.Players.Length];
+            for (int p = 0; p < options.Players.Length; p++)
+            {
+                clonedPlayers[p] = options.Players[p];
+            }
+            PlayerOptions atk = options.Players[attackerIndex];
+            clonedPlayers[attackerIndex] = new PlayerOptions
+            {
+                HealOnActionable = atk.HealOnActionable,
+                SuperMaxOnActionable = atk.SuperMaxOnActionable,
+                BurstMaxOnActionable = atk.BurstMaxOnActionable,
+                Immortal = atk.Immortal,
+                Character = atk.Character,
+                SkinIndex = atk.SkinIndex,
+                ComboMode = ComboMode.Freestyle,
+                ManiaDifficulty = atk.ManiaDifficulty,
+                BeatCancelWindow = atk.BeatCancelWindow,
+            };
 
             _options = new GameOptions
             {
                 Global = options.Global,
-                Players = options.Players,
+                Players = clonedPlayers,
                 LocalPlayers = options.LocalPlayers,
                 InfoOptions = options.InfoOptions,
-                EnableMania = false,
                 // Default off. Toggled to true only on the exact single frame
                 // an attacker input is applied (either in TryCandidate's frame
                 // 0 or when applying a chosen move in ApplyInputToWorking).
@@ -212,10 +235,10 @@ namespace Game.Sim
                 SnapshotWorking();
 
                 candidates.Clear();
-                foreach (InputFlags atk in AttackInputs)
+                foreach (InputFlags attack in AttackInputs)
                 {
-                    TryCandidate(candidates, atk, nextBeat);
-                    TryCandidate(candidates, atk | InputFlags.Down, nextBeat);
+                    TryCandidate(candidates, attack, nextBeat);
+                    TryCandidate(candidates, attack | InputFlags.Down, nextBeat);
                 }
 
                 int hashValue = DeterministicHash(state.RealFrame.No, i);

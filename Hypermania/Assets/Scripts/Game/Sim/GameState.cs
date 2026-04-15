@@ -22,6 +22,25 @@ namespace Game.Sim
         End, // after game is done
     }
 
+    public enum ComboMode
+    {
+        Assisted,
+        Freestyle,
+    }
+
+    public enum ManiaDifficulty
+    {
+        Normal,
+        Hard,
+    }
+
+    public enum BeatCancelWindow
+    {
+        Easy = 5,
+        Medium = 4,
+        Hard = 3,
+    }
+
     [Serializable]
     public class PlayerOptions
     {
@@ -31,6 +50,9 @@ namespace Game.Sim
         public bool Immortal;
         public CharacterConfig Character;
         public int SkinIndex;
+        public ComboMode ComboMode;
+        public ManiaDifficulty ManiaDifficulty;
+        public BeatCancelWindow BeatCancelWindow = BeatCancelWindow.Medium;
     }
 
     [Serializable]
@@ -54,7 +76,6 @@ namespace Game.Sim
         public PlayerOptions[] Players;
         public LocalPlayerOptions[] LocalPlayers;
         public InfoOptions InfoOptions;
-        public bool EnableMania;
         public bool AlwaysRhythmCancel;
     }
 
@@ -146,12 +167,13 @@ namespace Game.Sim
                     facing,
                     3
                 );
+                int beatWindow = (int)options.Players[i].BeatCancelWindow;
                 state.Manias[i] = ManiaState.Create(
                     new ManiaConfig
                     {
                         NumKeys = 4,
-                        HitHalfRange = options.Global.Input.BeatCancelWindow,
-                        MissHalfRange = options.Global.Input.BeatCancelWindow + 3,
+                        HitHalfRange = beatWindow,
+                        MissHalfRange = beatWindow + 3,
                     }
                 );
             }
@@ -745,7 +767,7 @@ namespace Game.Sim
 
                     //to start a rhythm combo, we must sure that the move was not traded
                     if (
-                        options.EnableMania
+                        options.Players[owners.Item1].ComboMode == ComboMode.Assisted
                         && !PhysicsCtx.HurtHitCollisions.ContainsKey((owners.Item2, owners.Item1))
                         && GameMode == GameMode.Fighting
                         && outcome.Kind == HitKind.Hit

@@ -362,7 +362,7 @@ namespace Game.Sim
             // records this so its mechanics all unfold from this single
             // point, making the resulting combo independent of where in the
             // input window the player actually pressed.
-            Frame rhythmCancelInputEnd = frame + (-beatOffset + options.Global.Input.BeatCancelWindow);
+            Frame rhythmCancelInputEnd = frame + (-beatOffset + (int)options.Players[Index].BeatCancelWindow);
             if (isRhythmCancel)
             {
                 startFrame = rhythmCancelInputEnd;
@@ -409,7 +409,7 @@ namespace Game.Sim
                     Frame endFrame = frame + config.GetHitboxData(CharacterState.PreJump).TotalTicks;
                     if (isRhythmCancel)
                     {
-                        endFrame = frame - beatOffset + options.Global.Input.BeatCancelWindow;
+                        endFrame = frame - beatOffset + (int)options.Players[Index].BeatCancelWindow;
                     }
 
                     // handle the case when jump is pressed on the last frame
@@ -614,7 +614,7 @@ namespace Game.Sim
                     if (isRhythmCancel && config.GetHitboxData(state).IsValidAttack(frames))
                     {
                         // a negative beat offset means the input was early, which means we should start it later, so we negate beatoffset
-                        startFrame += -beatOffset - frames[0] + options.Global.Input.BeatCancelWindow;
+                        startFrame += -beatOffset - frames[0] + (int)options.Players[Index].BeatCancelWindow;
                         rhythmCancelAdjusted = true;
                     }
 
@@ -629,7 +629,7 @@ namespace Game.Sim
                         // Two different-timed presses on the same note then
                         // produce identical combo behaviour.
                         RhythmCancelInputEnd =
-                            simFrame + (-beatOffset + options.Global.Input.BeatCancelWindow);
+                            simFrame + (-beatOffset + (int)options.Players[Index].BeatCancelWindow);
                     }
                     if (state == CharacterState.Grab)
                     {
