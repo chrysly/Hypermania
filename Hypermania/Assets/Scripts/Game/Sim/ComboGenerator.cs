@@ -4,6 +4,7 @@ using Design.Animation;
 using Design.Configs;
 using MemoryPack;
 using Netcode.Rollback;
+using UnityEngine;
 using Utils;
 using Utils.SoftFloat;
 
@@ -112,7 +113,7 @@ namespace Game.Sim
         /// work without changes.
         /// </summary>
         public static GeneratedCombo Generate(
-            GameState state,
+            in GameState state,
             GameOptions options,
             int attackerIndex,
             Frame[] noteFrames,
@@ -124,7 +125,7 @@ namespace Game.Sim
         }
 
         public GeneratedCombo Run(
-            GameState state,
+            in GameState state,
             GameOptions options,
             int attackerIndex,
             Frame[] noteFrames,
@@ -195,7 +196,17 @@ namespace Game.Sim
             _working.GameMode = GameMode.ManiaStart;
             _working.ModeStart = _working.RealFrame;
 
-            AdvanceWorkingTo(firstBeatFrame);
+            // Stop one frame short of the beat so that the subsequent
+            // AdvanceOnce(input) in TryCandidate / ApplyInputToWorking
+            // lands the input on firstBeatFrame itself, matching the
+            // RealFrame where the real game's DoManiaStep would dispatch
+            // a perfectly-timed HitInput. Advancing TO firstBeatFrame
+            // would consume that frame with an empty input and push the
+            // sim's effective input frame to firstBeatFrame + 1, drifting
+            // the simulated state one frame ahead of the real game each
+            // beat — which in cross-up scenarios produces a stale
+            // FacingDir read and bakes a backwards Dash/Up note.
+            AdvanceWorkingTo(firstBeatFrame - 1);
 
             // Override back to Fighting so candidate trials run at full speed
             // instead of through the ManiaStart slow-mo curve.
@@ -217,14 +228,20 @@ namespace Game.Sim
             for (int i = 0; i < noteFrames.Length; i++)
             {
                 currentBeat = noteFrames[i];
-                AdvanceWorkingTo(currentBeat);
+                // Stop one frame short of the beat so candidate and
+                // chosen-move AdvanceOnce(input) calls land the input
+                // on frame currentBeat itself — matching the real
+                // game's DoManiaStep dispatch at RealFrame = currentBeat
+                // for a perfectly-timed press.
+                AdvanceWorkingTo(currentBeat - 1);
 
                 // Next authored note (if any) so we can reject candidates
                 // whose hitstun bleeds into its input window.
                 Frame nextBeat = (i + 1 < noteFrames.Length) ? noteFrames[i + 1] : Frame.Infinity;
 
-                // Snapshot the pristine beat state so each candidate trial can
-                // revert to it before applying its own input.
+                // Snapshot state at the frame before the beat so each
+                // candidate trial can revert and then apply its input
+                // on the beat frame itself.
                 SnapshotWorking();
 
                 candidates.Clear();
@@ -341,6 +358,10 @@ namespace Game.Sim
                 if (lastGap > 0)
                     trailingPad = lastGap;
             }
+            // Extra buffer past the last beat so the finisher's hit lands
+            // while still in GameMode.Mania — otherwise the hit registers
+            // during Fighting and grants super meter from the combo itself.
+            trailingPad += 10;
             Frame endFrame = noteFrames[noteFrames.Length - 1] + trailingPad;
             return new GeneratedCombo { Moves = moves, EndFrame = endFrame };
         }
@@ -462,7 +483,10 @@ namespace Game.Sim
         {
             RestoreWorking();
             ApplyInputToWorking(movement);
-            AdvanceWorkingTo(nextBeat);
+            // Stop one frame short of nextBeat so the lookahead attack's
+            // AdvanceOnce(input) in LookaheadAttackHits lands on frame
+            // nextBeat, matching the real game's dispatch.
+            AdvanceWorkingTo(nextBeat - 1);
             CloneInto(ref _lookaheadSnapshot, _working);
 
             foreach (InputFlags atk in AttackInputs)
@@ -774,7 +798,14 @@ namespace Game.Sim
 
         /// <summary>
         /// Advance _working forward with empty inputs until its RealFrame
-        /// reaches <paramref name="targetRealFrame"/>.
+        /// reaches <paramref name="targetRealFrame"/>. GameState.Advance
+        /// increments RealFrame at the top of its call, so the last
+        /// AdvanceOnce here processes frame <paramref name="targetRealFrame"/>
+        /// itself with empty input. Callers that want a subsequent
+        /// AdvanceOnce(input) to land the input on beat frame F should
+        /// pass F - 1 here, so the input frame matches where the real
+        /// game's DoManiaStep dispatches the note's HitInput at
+        /// RealFrame = F.
         /// </summary>
         private void AdvanceWorkingTo(Frame targetRealFrame)
         {

@@ -198,7 +198,7 @@ namespace Game.Sim
             FacingDir = facingDirection;
         }
 
-        public void DoFrameStart(GameOptions options, bool maniaActive)
+        public void DoFrameStart(GameOptions options, bool maniaActive, GameMode gameMode)
         {
             // Latch the mania hitstun lock: if this fighter is currently in
             // hitstun while a mania is running, they must remain treated as
@@ -216,7 +216,7 @@ namespace Game.Sim
                 {
                     Health = options.Players[Index].Character.Health;
                 }
-                if (options.Players[Index].SuperMaxOnActionable)
+                if (options.Players[Index].SuperMaxOnActionable && gameMode == GameMode.Fighting)
                 {
                     Super = options.Global.SuperMax;
                 }
@@ -591,13 +591,11 @@ namespace Game.Sim
                 if (Super >= superCost + superCost)
                 {
                     IsSuperAttack = true;
-                    Super -= superCost + superCost;
                     SuperComboBeats = options.Global.SuperTier2Beats;
                 }
                 else if (Super >= superCost)
                 {
                     IsSuperAttack = true;
-                    Super -= superCost;
                     SuperComboBeats = options.Global.SuperTier1Beats;
                 }
             }

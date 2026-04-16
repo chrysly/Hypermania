@@ -100,6 +100,28 @@ ScriptedImporter:
     spritePosition: {x: 0, y: 0}
   multiSpriteImportData: []
   layeredSpriteImportData:
+  - name: hype
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 1592
+      y: 4
+      width: 235
+      height: 96
+    spriteID: 73e42a578eaeaf540bc9754baf1d8b61
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 1592, y: 4}
+    spritePosition: {x: 691, y: 0}
   - name: Layer 19
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -121,7 +143,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
-    spritePosition: {x: 0, y: 0}
+    spritePosition: {x: 0, y: 60}
   - name: Rectangle 2
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -143,7 +165,7 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 214}
-    spritePosition: {x: 54, y: 7}
+    spritePosition: {x: 54, y: 67}
   spriteImportData: []
   rigSpriteImportData: []
   sharedRigSpriteImportData: []
@@ -183,6 +205,16 @@ ScriptedImporter:
   resliceFromLayer: 0
   pSDLayerImportSetting: []
   psdLayers:
+  - name: hype
+    spriteName: hype
+    isGroup: 0
+    parentIndex: -1
+    spriteID: 73e42a578eaeaf540bc9754baf1d8b61
+    layerID: 24
+    mosaicPosition: {x: 1592, y: 4}
+    flatten: 0
+    isImported: 1
+    isVisible: 1
   - name: Layer 19
     spriteName: Layer 19
     isGroup: 0

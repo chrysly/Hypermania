@@ -128,12 +128,11 @@ namespace Game.View
             for (int i = 0; i < _options.Players.Length; i++)
             {
                 _fighters[i].Render(state.SimFrame, state.Fighters[i]);
-                int maniaViewIdx = GetManiaViewIndex(state, i);
-                _playerParams[maniaViewIdx].ManiaView.Render(state.RealFrame, state.Manias[i]);
+                _playerParams[i].ManiaView.Render(state.RealFrame, state.Manias[i]);
 
                 maniasEnabled |= state.Manias[i].Enabled(state.RealFrame);
                 if (state.Manias[i].Enabled(state.RealFrame))
-                    _conductor.t = Mathf.Lerp(_conductor.t, maniaViewIdx * 2 - 1, deltaTime * _conductorLerpSpeed);
+                    _conductor.t = Mathf.Lerp(_conductor.t, i * 2 - 1, deltaTime * _conductorLerpSpeed);
             }
 
             _conductor.PublishTick(state.RealFrame, deltaTime);
@@ -259,8 +258,7 @@ namespace Game.View
             for (int i = 0; i < _options.Players.Length; i++)
             {
                 _fighters[i].RollbackRender(state.RealFrame, state.Fighters[i], _params.VfxManager, _params.SfxManager);
-                int maniaViewIdx = GetManiaViewIndex(state, i);
-                _playerParams[maniaViewIdx]
+                _playerParams[i]
                     .ManiaView.RollbackRender(state.RealFrame, state.Manias[i], _params.VfxManager, _params.SfxManager);
                 if (state.Fighters[i].SuperMaxedThisRealFrame)
                 {
@@ -288,14 +286,6 @@ namespace Game.View
                     }
                 }
             }
-        }
-
-        private int GetManiaViewIndex(in GameState state, int fighterIndex)
-        {
-            int other = fighterIndex ^ 1;
-            bool toRightOfOpponent =
-                (float)state.Fighters[fighterIndex].Position.x > (float)state.Fighters[other].Position.x;
-            return toRightOfOpponent ? 0 : 1;
         }
 
         public void DeInit()

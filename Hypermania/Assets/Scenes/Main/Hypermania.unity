@@ -1271,6 +1271,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1330759815}
     m_Modifications:
+    - target: {fileID: 316064595818388106, guid: eeccba413df6b419591053b3c19f3a34, type: 3}
+      propertyPath: m_fontSize
+      value: 256
+      objectReference: {fileID: 0}
+    - target: {fileID: 316064595818388106, guid: eeccba413df6b419591053b3c19f3a34, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 256
+      objectReference: {fileID: 0}
     - target: {fileID: 2120388325386011813, guid: eeccba413df6b419591053b3c19f3a34, type: 3}
       propertyPath: m_Name
       value: ComboViewL
@@ -2416,6 +2424,14 @@ PrefabInstance:
     - target: {fileID: 1759054414941096813, guid: 0afe6c038c3634c4e88df6379ffd86dd, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4714519931933973759, guid: 0afe6c038c3634c4e88df6379ffd86dd, type: 3}
+      propertyPath: m_fontSize
+      value: 256
+      objectReference: {fileID: 0}
+    - target: {fileID: 4714519931933973759, guid: 0afe6c038c3634c4e88df6379ffd86dd, type: 3}
+      propertyPath: m_fontSizeBase
+      value: 256
       objectReference: {fileID: 0}
     - target: {fileID: 6368815583428707024, guid: 0afe6c038c3634c4e88df6379ffd86dd, type: 3}
       propertyPath: m_Name

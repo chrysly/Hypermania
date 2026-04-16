@@ -6,6 +6,7 @@ using Design.Configs;
 using Game.View.Overlay;
 using MemoryPack;
 using Netcode.Rollback;
+using UnityEngine;
 using UnityEngine.InputSystem;
 using Utils;
 using Utils.SoftFloat;
@@ -343,7 +344,7 @@ namespace Game.Sim
             bool maniaActive = GameMode == GameMode.Mania || GameMode == GameMode.ManiaStart;
             for (int i = 0; i < Fighters.Length; i++)
             {
-                Fighters[i].DoFrameStart(options, maniaActive);
+                Fighters[i].DoFrameStart(options, maniaActive, GameMode);
             }
 
             // Tick the state machine, making the character idle if an animation/stun finishes
@@ -525,9 +526,7 @@ namespace Game.Sim
                 HitstopFramesRemaining = ComboManager.StartRhythmCombo(
                     RealFrame,
                     ref Manias[attackerIndex],
-                    Fighters[attackerIndex].FacingDir,
                     options,
-                    options.Players[attackerIndex].Character,
                     this,
                     attackerIndex,
                     comboBeats
@@ -564,8 +563,17 @@ namespace Game.Sim
         {
             (bool, int) rhythmCancel = (false, 0);
 
+            // Dissipate SuperCost super per 8 beats from the combo attacker.
+            sfloat dissipationPerFrame =
+                options.Global.SuperCost / (sfloat)options.Global.Audio.BeatsToFrame(8);
+
             for (int i = 0; i < Manias.Length; i++)
             {
+                if (Manias[i].Enabled(RealFrame))
+                {
+                    Fighters[i].Super = Mathsf.Max(Fighters[i].Super - dissipationPerFrame, (sfloat)0);
+                }
+
                 Manias[i].Tick(RealFrame, inputs[i].input);
 
                 foreach (ManiaEvent ev in Manias[i].ManiaEvents)
@@ -593,6 +601,12 @@ namespace Game.Sim
                                 );
                             Fighters[i].Velocity =
                                 Fighters[i].BackwardVector * options.Global.ManiaFailKnockbackMagnitude;
+                            // Early-end penalty: deduct half of SuperCost
+                            // from the remaining super bar.
+                            Fighters[i].Super = Mathsf.Max(
+                                Fighters[i].Super - options.Global.SuperCost / (sfloat)2,
+                                (sfloat)0
+                            );
                             GameMode = GameMode.Fighting;
                             Manias[i].End();
                             ClearLockedHitstun();

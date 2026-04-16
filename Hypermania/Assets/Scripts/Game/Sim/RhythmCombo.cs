@@ -12,10 +12,8 @@ namespace Game.Sim
         public int StartRhythmCombo(
             Frame realFrame,
             ref ManiaState state,
-            FighterFacing facingDir,
             GameOptions options,
-            CharacterConfig characterConfig,
-            GameState gameState,
+            in GameState gameState,
             int attackerIndex,
             int comboBeatCount
         )
@@ -67,6 +65,7 @@ namespace Game.Sim
             }
 
             state.Enable(combo.EndFrame);
+
             return hitstop;
         }
     }
