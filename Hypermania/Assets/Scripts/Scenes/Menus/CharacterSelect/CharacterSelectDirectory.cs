@@ -537,7 +537,7 @@ namespace Scenes.Menus.CharacterSelect
                     {
                         ShowFrameData = training,
                         ShowBoxes = training,
-                        VerifyComboPrediction = training,
+                        VerifyComboPrediction = false,
                     },
                 Players = new PlayerOptions[2],
                 AlwaysRhythmCancel = false,

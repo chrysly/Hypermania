@@ -70,7 +70,7 @@ namespace Scenes.Menus.InputSelect
                 {
                     ShowFrameData = training,
                     ShowBoxes = training,
-                    VerifyComboPrediction = training,
+                    VerifyComboPrediction = false,
                 },
                 AlwaysRhythmCancel = false,
             };
