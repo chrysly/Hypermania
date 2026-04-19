@@ -799,10 +799,7 @@ namespace Game.Sim
 
                     int stopTicks =
                         outcome.Kind == HitKind.Blocked ? outcome.Props.BlockstopTicks : outcome.Props.HitstopTicks;
-                    HitstopFramesRemaining = Mathsf.Min(
-                        Mathsf.Max(stopTicks, HitstopFramesRemaining),
-                        12
-                    );
+                    HitstopFramesRemaining = Mathsf.Min(Mathsf.Max(stopTicks, HitstopFramesRemaining), 12);
 
                     var attackerBox = collision.BoxA.Owner == owners.Item1 ? collision.BoxA : collision.BoxB;
 
