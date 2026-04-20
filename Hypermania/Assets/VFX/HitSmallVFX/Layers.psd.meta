@@ -109,7 +109,7 @@ ScriptedImporter:
     rect:
       serializedVersion: 2
       x: 1606
-      y: 1133
+      y: 2124
       width: 858
       height: 1041
     spriteID: 5f4400bcb23792540b850ad7fd6f4ec9
@@ -120,8 +120,8 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 542, y: 671}
-    spritePosition: {x: 1064, y: 462}
+    uvTransform: {x: 1606, y: 2124}
+    spritePosition: {x: 1094, y: 584}
   - name: Frame 4
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -130,7 +130,7 @@ ScriptedImporter:
     customData: 
     rect:
       serializedVersion: 2
-      x: 2540
+      x: 1606
       y: 4
       width: 977
       height: 1033
@@ -142,8 +142,8 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 1640, y: -535}
-    spritePosition: {x: 900, y: 539}
+    uvTransform: {x: 1606, y: 4}
+    spritePosition: {x: 930, y: 579}
   - name: Frame 3
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -218,33 +218,11 @@ ScriptedImporter:
     customData: 
     rect:
       serializedVersion: 2
-      x: 1606
-      y: 4
-      width: 926
-      height: 1121
-    spriteID: af237717548a7ea468dc6ffaaaf8ec89
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 1606, y: 4}
-    spritePosition: {x: 1026, y: 423}
-  - name: Blur 4
-    originalName: 
-    pivot: {x: 0.5, y: 0.5}
-    alignment: 0
-    border: {x: 0, y: 0, z: 0, w: 0}
-    customData: 
-    rect:
-      serializedVersion: 2
       x: 4
       y: 6203
-      width: 1052
-      height: 1112
-    spriteID: 024593dba24d2e64385e785019987398
+      width: 959
+      height: 1107
+    spriteID: 983f8bf94569ba145813c091fe18b0e2
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -253,7 +231,29 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 6203}
-    spritePosition: {x: 860, y: 499}
+    spritePosition: {x: 1056, y: 545}
+  - name: Blur 4
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    customData: 
+    rect:
+      serializedVersion: 2
+      x: 1606
+      y: 1064
+      width: 1005
+      height: 1052
+    spriteID: 1acf6a5a3473dd0499a8734c77ac47ae
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 1606, y: 1064}
+    spritePosition: {x: 930, y: 579}
   - name: Blur 3
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -365,7 +365,7 @@ ScriptedImporter:
     parentIndex: -1
     spriteID: 5f4400bcb23792540b850ad7fd6f4ec9
     layerID: 12
-    mosaicPosition: {x: 1606, y: 1133}
+    mosaicPosition: {x: 1606, y: 2124}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -375,7 +375,7 @@ ScriptedImporter:
     parentIndex: -1
     spriteID: 86e4581ca2b782542bc34c7d3edb8205
     layerID: 11
-    mosaicPosition: {x: 2540, y: 4}
+    mosaicPosition: {x: 1606, y: 4}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -413,9 +413,9 @@ ScriptedImporter:
     spriteName: Blur 5
     isGroup: 0
     parentIndex: -1
-    spriteID: af237717548a7ea468dc6ffaaaf8ec89
-    layerID: 6
-    mosaicPosition: {x: 1606, y: 4}
+    spriteID: 983f8bf94569ba145813c091fe18b0e2
+    layerID: 23
+    mosaicPosition: {x: 4, y: 6203}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -423,9 +423,9 @@ ScriptedImporter:
     spriteName: Blur 4
     isGroup: 0
     parentIndex: -1
-    spriteID: 024593dba24d2e64385e785019987398
-    layerID: 5
-    mosaicPosition: {x: 4, y: 6203}
+    spriteID: 1acf6a5a3473dd0499a8734c77ac47ae
+    layerID: 24
+    mosaicPosition: {x: 1606, y: 1064}
     flatten: 0
     isImported: 1
     isVisible: 1
