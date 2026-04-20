@@ -7190,6 +7190,7 @@ MonoBehaviour:
   _dustEmitterLocation: {fileID: 846622067029415103}
   _visualCenter: {fileID: 6821949382780389010}
   _hitJitterMagnitude: 0.03
+  _thinHitKnockbackMagnitude: 0.8
 --- !u!114 &3444752299832716971
 MonoBehaviour:
   m_ObjectHideFlags: 0

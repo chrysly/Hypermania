@@ -8,6 +8,9 @@ namespace Game.View.Events.Vfx
     {
         [SerializeField]
         private bool _flipXWithDirection;
+        [SerializeField]
+        private bool _rotateWithDirection = true;
+
 
         private VisualEffect _vfx;
 
@@ -15,6 +18,10 @@ namespace Game.View.Events.Vfx
         {
             transform.position = new Vector3(ev.Event.Position.x, ev.Event.Position.y, transform.position.z);
 
+            if (_rotateWithDirection)
+            {
+                transform.rotation = Quaternion.FromToRotation(Vector3.right, -ev.Event.Direction);
+            }
             if (_flipXWithDirection && ev.Event.Direction.x < 0)
             {
                 var s = transform.localScale;

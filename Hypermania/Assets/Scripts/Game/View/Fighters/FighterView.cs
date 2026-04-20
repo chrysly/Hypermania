@@ -27,6 +27,9 @@ namespace Game.View.Fighters
 
         [SerializeField]
         private float _hitJitterMagnitude = 0.04f;
+        
+        [SerializeField]
+        private float _thinHitKnockbackMagnitude = 0.04f;
 
         private int _jitterFramesRemaining;
 
@@ -36,6 +39,7 @@ namespace Game.View.Fighters
             {
                 throw new InvalidOperationException("Skin index out of range");
             }
+
             _animator = GetComponent<Animator>();
             _spriteLibrary = GetComponent<SpriteLibrary>();
             _animator.speed = 0f;
@@ -56,6 +60,7 @@ namespace Game.View.Fighters
             {
                 _jitterFramesRemaining = state.HitProps.Value.HitstopTicks;
             }
+
             if (_jitterFramesRemaining > 0)
             {
                 Vector2 jitter = UnityEngine.Random.insideUnitCircle * _hitJitterMagnitude;
@@ -90,17 +95,28 @@ namespace Game.View.Fighters
                     sfxManager.AddDesired(sfxKind, realFrame);
                 }
             }
+
             if (state.BlockedLastRealFrame)
             {
-                Vector2 center = (Vector2)_visualCenter.position;
+                Vector2 center = _visualCenter.position;
                 Vector2 hit = (Vector2)state.HitLocation.Value;
                 vfxManager.AddDesired(VfxKind.Block, realFrame, position: center, direction: center - hit);
                 sfxManager.AddDesired(SfxKind.Block, realFrame);
             }
+
             if (state.HitLastRealFrame)
             {
-                vfxManager.AddDesired(VfxKind.SmallHit, realFrame, position: (Vector2)state.HitLocation);
+                VfxKind kind = (float)state.HitProps.Value.Knockback.magnitude < _thinHitKnockbackMagnitude
+                    ? VfxKind.SmallHit
+                    : VfxKind.ThinHit;
+                vfxManager.AddDesired(
+                    kind,
+                    realFrame,
+                    position: (Vector2)state.HitLocation,
+                    direction: (Vector2)state.HitProps.Value.Knockback
+                );
             }
+
             if (state.DashedLastRealFrame)
             {
                 Vector2 dir = (Vector2)(
