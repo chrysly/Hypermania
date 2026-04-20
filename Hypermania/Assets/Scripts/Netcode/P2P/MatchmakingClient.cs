@@ -21,6 +21,23 @@ namespace Netcode.P2P
         /// </summary>
         public Action OnBackRequested;
 
+        /// <summary>
+        /// Fires on every lobby member when a non-host asks the host to
+        /// start the match from CharacterSelect (see
+        /// <see cref="SendCharacterSelectLaunchRequest"/>). Only the host
+        /// should act on this — non-hosts should ignore it.
+        /// </summary>
+        public Action OnCharacterSelectLaunchRequested;
+
+        /// <summary>
+        /// Fires on every lobby member (including the sending host) when
+        /// the host authoritatively broadcasts the CharacterSelect launch
+        /// signal (see <see cref="SendCharacterSelectLaunch"/>). Both
+        /// clients should commit to the match on receipt, so they
+        /// transition together.
+        /// </summary>
+        public Action OnCharacterSelectLaunch;
+
         public SteamMatchmakingClient()
         {
             if (!SteamManager.Initialized)
@@ -126,8 +143,43 @@ namespace Netcode.P2P
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Non-host asks the host to start the match from CharacterSelect.
+        /// Fire-and-forget: the host validates its own view of "both
+        /// confirmed" on receipt and responds with
+        /// <see cref="SendCharacterSelectLaunch"/> if satisfied.
+        /// </summary>
+        public Task SendCharacterSelectLaunchRequest()
+        {
+            if (!_currentLobby.IsValid())
+                return Task.CompletedTask;
+
+            Debug.Log($"[Matchmaking] SendCharacterSelectLaunchRequest(): lobby={_currentLobby.m_SteamID}");
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(CS_LAUNCH_REQ_MSG);
+            SteamMatchmaking.SendLobbyChatMsg(_currentLobby, bytes, bytes.Length);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Host authoritatively tells all clients (including itself via
+        /// chat echo) to transition out of CharacterSelect into the match.
+        /// Both clients must act on this message to stay in lockstep.
+        /// </summary>
+        public Task SendCharacterSelectLaunch()
+        {
+            if (!_currentLobby.IsValid())
+                return Task.CompletedTask;
+
+            Debug.Log($"[Matchmaking] SendCharacterSelectLaunch(): lobby={_currentLobby.m_SteamID}");
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(CS_LAUNCH_MSG);
+            SteamMatchmaking.SendLobbyChatMsg(_currentLobby, bytes, bytes.Length);
+            return Task.CompletedTask;
+        }
+
         private const string START_MSG = "__START";
         private const string BACK_MSG = "__BACK";
+        private const string CS_LAUNCH_REQ_MSG = "__CS_LAUNCH_REQ";
+        private const string CS_LAUNCH_MSG = "__CS_LAUNCH";
 
         private CSteamID _currentLobby;
 
@@ -233,6 +285,20 @@ namespace Netcode.P2P
             {
                 Debug.Log($"[Matchmaking] Received BACK from={user.m_SteamID}, me={SteamUser.GetSteamID()}");
                 OnBackRequested?.Invoke();
+                return;
+            }
+
+            if (text == CS_LAUNCH_REQ_MSG)
+            {
+                Debug.Log($"[Matchmaking] Received CS_LAUNCH_REQ from={user.m_SteamID}, me={SteamUser.GetSteamID()}");
+                OnCharacterSelectLaunchRequested?.Invoke();
+                return;
+            }
+
+            if (text == CS_LAUNCH_MSG)
+            {
+                Debug.Log($"[Matchmaking] Received CS_LAUNCH from={user.m_SteamID}, me={SteamUser.GetSteamID()}");
+                OnCharacterSelectLaunch?.Invoke();
                 return;
             }
 

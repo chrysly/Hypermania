@@ -67,6 +67,7 @@ namespace Scenes.Menus.CharacterSelect
         private int _onlineLocalPlayerIndex = -1;
         private bool _isOnline;
         private bool _committed;
+        private bool _launchDispatched;
         private bool _exiting;
         private bool _singleDeviceMode;
         private int _activeLocalSlot = -1;
@@ -76,6 +77,7 @@ namespace Scenes.Menus.CharacterSelect
         private void OnEnable()
         {
             _committed = false;
+            _launchDispatched = false;
             _exiting = false;
             _state = new CharacterSelectState();
             _isOnline = SessionDirectory.Config == GameConfig.Online;
@@ -105,6 +107,8 @@ namespace Scenes.Menus.CharacterSelect
             if (_matchmakingSubscription != null)
             {
                 _matchmakingSubscription.OnBackRequested -= OnRemoteBackRequested;
+                _matchmakingSubscription.OnCharacterSelectLaunchRequested -= OnRemoteLaunchRequested;
+                _matchmakingSubscription.OnCharacterSelectLaunch -= OnLaunchBroadcast;
                 _matchmakingSubscription = null;
             }
             _remoteController?.Dispose();
@@ -265,6 +269,8 @@ namespace Scenes.Menus.CharacterSelect
 
             _matchmakingSubscription = OnlineBaseDirectory.Matchmaking;
             _matchmakingSubscription.OnBackRequested += OnRemoteBackRequested;
+            _matchmakingSubscription.OnCharacterSelectLaunchRequested += OnRemoteLaunchRequested;
+            _matchmakingSubscription.OnCharacterSelectLaunch += OnLaunchBroadcast;
             return true;
         }
 
@@ -310,9 +316,79 @@ namespace Scenes.Menus.CharacterSelect
 
             if (!_committed && bothReady && bothReadyBefore && anyConfirmEdge)
             {
-                _committed = true;
-                Commit();
+                if (_isOnline)
+                {
+                    TryDispatchOnlineLaunch();
+                }
+                else
+                {
+                    _committed = true;
+                    Commit();
+                }
             }
+        }
+
+        /// <summary>
+        /// Online launch trigger. Any player whose view shows both-ready +
+        /// local confirm press routes through the host: the host is the
+        /// single authority that broadcasts the actual launch signal, so
+        /// both clients transition together on the same inbound message
+        /// and cannot desync. <see cref="_launchDispatched"/> guards
+        /// against re-sending while waiting for the echo.
+        /// </summary>
+        private void TryDispatchOnlineLaunch()
+        {
+            if (_launchDispatched || _matchmakingSubscription == null)
+                return;
+
+            CSteamID lobby = _matchmakingSubscription.CurrentLobby;
+            if (!lobby.IsValid())
+                return;
+
+            _launchDispatched = true;
+
+            bool isHost = SteamMatchmaking.GetLobbyOwner(lobby) == SteamUser.GetSteamID();
+            if (isHost)
+            {
+                _matchmakingSubscription.SendCharacterSelectLaunch();
+            }
+            else
+            {
+                _matchmakingSubscription.SendCharacterSelectLaunchRequest();
+            }
+        }
+
+        /// <summary>
+        /// Host-only: a non-host asked us to launch. Re-validate against
+        /// our own view at receipt time; if still both-confirmed and not
+        /// yet committed, broadcast the authoritative launch.
+        /// </summary>
+        private void OnRemoteLaunchRequested()
+        {
+            if (!_isOnline || _committed || _matchmakingSubscription == null)
+                return;
+            CSteamID lobby = _matchmakingSubscription.CurrentLobby;
+            if (!lobby.IsValid())
+                return;
+            bool isHost = SteamMatchmaking.GetLobbyOwner(lobby) == SteamUser.GetSteamID();
+            if (!isHost)
+                return;
+            if (_state == null || !_state.BothConfirmed)
+                return;
+
+            _matchmakingSubscription.SendCharacterSelectLaunch();
+        }
+
+        /// <summary>
+        /// Host broadcast the authoritative launch. Commit now — both
+        /// clients hit this in response to the same inbound message.
+        /// </summary>
+        private void OnLaunchBroadcast()
+        {
+            if (!_isOnline || _committed)
+                return;
+            _committed = true;
+            Commit();
         }
 
         /// <summary>
@@ -503,11 +579,13 @@ namespace Scenes.Menus.CharacterSelect
 
             if (_isOnline)
             {
+                // OnlineBase stays loaded through LiveConnection → Battle →
+                // BattleEnd so the Steam lobby survives the match; that lets
+                // Restart drop both players straight back into the same lobby.
                 SceneLoader
                     .Instance.LoadNewScene()
                     .Load(SceneID.LiveConnection, SceneDatabase.LIVE_CONNECTION)
                     .Unload(SceneID.CharacterSelect)
-                    .Unload(SceneID.OnlineBase)
                     .WithOverlay()
                     .Execute();
             }
