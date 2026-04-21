@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: be373a019aa534843a9f8df3be036a28, type: 3}
-  m_Name: SepcialAerialFollowUp
+  m_Name: SpecialAerialFollowUp
   m_EditorClassIdentifier: 
   Clip: {fileID: 0}
   ComboEligible: 1

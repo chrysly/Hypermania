@@ -132,6 +132,8 @@ namespace Design.Animation
         public bool GravityEnabled = true;
         public bool ShouldApplyVel;
         public SVector2 ApplyVelocity;
+        public bool ShouldTeleport;
+        public SVector2 TeleportLocation;
 
         public FrameData Clone()
         {
@@ -141,6 +143,8 @@ namespace Design.Animation
             copy.Floating = Floating;
             copy.ShouldApplyVel = ShouldApplyVel;
             copy.ApplyVelocity = ApplyVelocity;
+            copy.ShouldTeleport = ShouldTeleport;
+            copy.TeleportLocation = TeleportLocation;
             copy.GravityEnabled = GravityEnabled;
             return copy;
         }
@@ -155,6 +159,8 @@ namespace Design.Animation
             FrameType = other.FrameType;
             ShouldApplyVel = other.ShouldApplyVel;
             ApplyVelocity = other.ApplyVelocity;
+            ShouldTeleport = other.ShouldTeleport;
+            TeleportLocation = other.TeleportLocation;
             GravityEnabled = other.GravityEnabled;
         }
 
@@ -173,6 +179,8 @@ namespace Design.Animation
             hc.Add(Floating);
             hc.Add(ShouldApplyVel);
             hc.Add(ApplyVelocity);
+            hc.Add(ShouldTeleport);
+            hc.Add(TeleportLocation);
             hc.Add(GravityEnabled);
             return hc.ToHashCode();
         }

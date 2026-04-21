@@ -42,6 +42,7 @@ namespace Game
         Throw = 34,
         HeavyAerialFollowUp = 35,
         MediumAttackFollowUp = 36,
+        SpecialAerialFollowUp = 37,
     }
 
     [Serializable]

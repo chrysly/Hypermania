@@ -106,6 +106,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 4bc7b5e3f82fd5546b2510cbf9f3d05f, type: 2}
     - {fileID: 11400000, guid: a4a09fb1d790b6041b2b8ae4eb7d0f33, type: 2}
     - {fileID: 11400000, guid: bdf1bc94e8de9a34bb6aa50ae488cce9, type: 2}
+    - {fileID: 11400000, guid: fef47fb6a49229b47bf508f50d7136b8, type: 2}
   Gatlings:
   - From: 5
     To: 8

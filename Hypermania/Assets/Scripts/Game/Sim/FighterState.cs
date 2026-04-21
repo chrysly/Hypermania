@@ -689,6 +689,13 @@ namespace Game.Sim
                 Velocity.x *= FacingDir == FighterFacing.Left ? -1 : 1;
             }
 
+            if (curData.ShouldTeleport)
+            {
+                SVector2 teleport = curData.TeleportLocation;
+                teleport.x *= FacingDir == FighterFacing.Left ? -1 : 1;
+                Position += teleport;
+            }
+
             if (curData.GravityEnabled && Position.y > options.Global.GroundY)
             {
                 Velocity.y += options.Global.Gravity * 1 / GameManager.TPS;
