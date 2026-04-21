@@ -1,22 +1,28 @@
 fileFormatVersion: 2
-guid: b69b7ec9467277646ad00d3f0fc7ea97
+guid: 0d64db04e6140a04b82b8e1cbac0b0f8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 3741618659370406969
-    second: HitFrame3_0
+      213: -4051778657061280230
+    second: HitFrame5_0
   - first:
-      213: 7667492698117624374
-    second: HitFrame3_1
+      213: 710236899505333561
+    second: HitFrame5_1
   - first:
-      213: 1501574321891066478
-    second: HitFrame3_2
+      213: 2762461425434508627
+    second: HitFrame5_2
   - first:
-      213: -7586849007753456495
-    second: HitFrame3_3
+      213: -3976008561365977272
+    second: HitFrame5_3
   - first:
-      213: -3256044858223534530
-    second: HitFrame3_4
+      213: -3080472252725693424
+    second: HitFrame5_4
+  - first:
+      213: 4739811807204245225
+    second: HitFrame5_5
+  - first:
+      213: -319664732585003276
+    second: HitFrame5_6
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -125,13 +131,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: HitFrame3_0
+      name: HitFrame5_0
       rect:
         serializedVersion: 2
-        x: 162
-        y: 1107
-        width: 709
-        height: 361
+        x: 17
+        y: 1250
+        width: 662
+        height: 353
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -140,20 +146,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9341fb4c856ece330800000000000000
-      internalID: 3741618659370406969
+      spriteID: a166a5557c035c7c0800000000000000
+      internalID: -4051778657061280230
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HitFrame3_1
+      name: HitFrame5_1
       rect:
         serializedVersion: 2
-        x: 399
-        y: 1156
-        width: 654
-        height: 617
+        x: 308
+        y: 1444
+        width: 385
+        height: 481
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -162,20 +168,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 632d33d1cf7686a60800000000000000
-      internalID: 7667492698117624374
+      spriteID: 935e36572b44bd900800000000000000
+      internalID: 710236899505333561
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HitFrame3_2
+      name: HitFrame5_2
       rect:
         serializedVersion: 2
-        x: 168
-        y: 888
-        width: 769
-        height: 245
+        x: 788
+        y: 1328
+        width: 265
+        height: 149
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -184,20 +190,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e624a2cd3e9a6d410800000000000000
-      internalID: 1501574321891066478
+      spriteID: 35d3eb0c70c365620800000000000000
+      internalID: 2762461425434508627
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HitFrame3_3
+      name: HitFrame5_3
       rect:
         serializedVersion: 2
-        x: 1143
-        y: 838
-        width: 733
-        height: 309
+        x: 0
+        y: 877
+        width: 675
+        height: 210
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -206,20 +212,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1949458360916b690800000000000000
-      internalID: -7586849007753456495
+      spriteID: 8477edb774162d8c0800000000000000
+      internalID: -3976008561365977272
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: HitFrame3_4
+      name: HitFrame5_4
+      rect:
+        serializedVersion: 2
+        x: 1212
+        y: 960
+        width: 813
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01476d3aec6ff35d0800000000000000
+      internalID: -3080472252725693424
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HitFrame5_5
       rect:
         serializedVersion: 2
         x: 1145
-        y: 313
-        width: 769
-        height: 555
+        y: 35
+        width: 549
+        height: 607
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -228,8 +256,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e3e59d4e37430d2d0800000000000000
-      internalID: -3256044858223534530
+      spriteID: 9ee7c9ed9b137c140800000000000000
+      internalID: 4739811807204245225
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: HitFrame5_6
+      rect:
+        serializedVersion: 2
+        x: 1527
+        y: 404
+        width: 520
+        height: 323
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4f6fc0f8e92509bf0800000000000000
+      internalID: -319664732585003276
       vertices: []
       indices: 
       edges: []
@@ -248,11 +298,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      HitFrame3_0: 3741618659370406969
-      HitFrame3_1: 7667492698117624374
-      HitFrame3_2: 1501574321891066478
-      HitFrame3_3: -7586849007753456495
-      HitFrame3_4: -3256044858223534530
+      HitFrame5_0: -4051778657061280230
+      HitFrame5_1: 710236899505333561
+      HitFrame5_2: 2762461425434508627
+      HitFrame5_3: -3976008561365977272
+      HitFrame5_4: -3080472252725693424
+      HitFrame5_5: 4739811807204245225
+      HitFrame5_6: -319664732585003276
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

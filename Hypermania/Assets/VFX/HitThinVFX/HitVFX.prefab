@@ -70,6 +70,12 @@ VisualEffect:
       - m_Value: 7
         m_Name: size
         m_Overridden: 1
+      - m_Value: 7
+        m_Name: HitSize
+        m_Overridden: 1
+      - m_Value: 3
+        m_Name: ParticleSize
+        m_Overridden: 1
     m_Vector2f:
       m_Array:
       - m_Value: {x: 1.1, y: 2.4}
