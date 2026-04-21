@@ -56,11 +56,14 @@ namespace Netcode.P2P
         /// <summary>
         /// Fires on every lobby member (including the sending host) when
         /// the host authoritatively broadcasts the CharacterSelect launch
-        /// signal (see <see cref="SendCharacterSelectLaunch"/>). Both
+        /// signal (see <see cref="SendCharacterSelectLaunch"/>). The args
+        /// carry the host's resolved final selections so both peers commit
+        /// from a single source of truth (prevents divergence from any
+        /// non-deterministic resolution such as the Random tile). Both
         /// clients should commit to the match on receipt, so they
         /// transition together.
         /// </summary>
-        public Action OnCharacterSelectLaunch;
+        public Action<string[]> OnCharacterSelectLaunch;
 
         public SteamMatchmakingClient()
         {
@@ -201,15 +204,20 @@ namespace Netcode.P2P
         /// <summary>
         /// Host authoritatively tells all clients (including itself via
         /// chat echo) to transition out of CharacterSelect into the match.
-        /// Both clients must act on this message to stay in lockstep.
+        /// <paramref name="args"/> carries the host's resolved final
+        /// selections (Random tiles already rolled), so every peer commits
+        /// from an identical snapshot. Both clients must act on this
+        /// message to stay in lockstep.
         /// </summary>
-        public Task SendCharacterSelectLaunch()
+        public Task SendCharacterSelectLaunch(params string[] args)
         {
             if (!_currentLobby.IsValid())
                 return Task.CompletedTask;
 
-            Debug.Log($"[Matchmaking] SendCharacterSelectLaunch(): lobby={_currentLobby.m_SteamID}");
-            SendChat(LobbyChatOpcode.CsLaunch);
+            Debug.Log(
+                $"[Matchmaking] SendCharacterSelectLaunch(): lobby={_currentLobby.m_SteamID}, args=[{string.Join(",", args ?? Array.Empty<string>())}]"
+            );
+            SendChat(LobbyChatOpcode.CsLaunch, args);
             return Task.CompletedTask;
         }
 
@@ -334,8 +342,10 @@ namespace Netcode.P2P
                     return;
 
                 case LobbyChatOpcode.CsLaunch:
-                    Debug.Log($"[Matchmaking] Received CS_LAUNCH from={user.m_SteamID}, me={SteamUser.GetSteamID()}");
-                    OnCharacterSelectLaunch?.Invoke();
+                    Debug.Log(
+                        $"[Matchmaking] Received CS_LAUNCH from={user.m_SteamID}, me={SteamUser.GetSteamID()}, args=[{string.Join(",", args)}]"
+                    );
+                    OnCharacterSelectLaunch?.Invoke(args);
                     return;
 
                 case LobbyChatOpcode.Start:

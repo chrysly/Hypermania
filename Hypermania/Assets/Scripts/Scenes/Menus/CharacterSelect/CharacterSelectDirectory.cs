@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Design.Configs;
 using Game;
@@ -345,10 +346,10 @@ namespace Scenes.Menus.CharacterSelect
         /// <summary>
         /// Online launch trigger. Any player whose view shows both-ready +
         /// local confirm press routes through the host: the host is the
-        /// single authority that broadcasts the actual launch signal, so
-        /// both clients transition together on the same inbound message
-        /// and cannot desync. <see cref="_launchDispatched"/> guards
-        /// against re-sending while waiting for the echo.
+        /// single authority that rolls any Random slots and broadcasts
+        /// the final resolved selections, so both clients commit from an
+        /// identical snapshot and cannot desync. <see cref="_launchDispatched"/>
+        /// guards against re-sending while waiting for the echo.
         /// </summary>
         private void TryDispatchOnlineLaunch()
         {
@@ -364,7 +365,8 @@ namespace Scenes.Menus.CharacterSelect
             bool isHost = SteamMatchmaking.GetLobbyOwner(lobby) == SteamUser.GetSteamID();
             if (isHost)
             {
-                _matchmakingSubscription.SendCharacterSelectLaunch();
+                string[] args = BuildResolvedLaunchArgs();
+                _matchmakingSubscription.SendCharacterSelectLaunch(args);
             }
             else
             {
@@ -375,7 +377,8 @@ namespace Scenes.Menus.CharacterSelect
         /// <summary>
         /// Host-only: a non-host asked us to launch. Re-validate against
         /// our own view at receipt time; if still both-confirmed and not
-        /// yet committed, broadcast the authoritative launch.
+        /// yet committed, roll any Random slots and broadcast the
+        /// authoritative launch with the resolved selections.
         /// </summary>
         private void OnRemoteLaunchRequested()
         {
@@ -390,19 +393,80 @@ namespace Scenes.Menus.CharacterSelect
             if (_state == null || !_state.BothConfirmed)
                 return;
 
-            _matchmakingSubscription.SendCharacterSelectLaunch();
+            string[] args = BuildResolvedLaunchArgs();
+            _matchmakingSubscription.SendCharacterSelectLaunch(args);
         }
 
         /// <summary>
-        /// Host broadcast the authoritative launch. Commit now — both
-        /// clients hit this in response to the same inbound message.
+        /// Host broadcast the authoritative launch. Apply the resolved
+        /// selections to local state (overwriting any Random slot the
+        /// non-host rolled locally) and commit — both clients hit this in
+        /// response to the same inbound message, so the sim starts from a
+        /// byte-identical <see cref="GameOptions"/> snapshot.
         /// </summary>
-        private void OnLaunchBroadcast()
+        private void OnLaunchBroadcast(string[] args)
         {
             if (!_isOnline || _committed)
                 return;
+            if (!TryApplyLaunchArgs(args))
+            {
+                Debug.LogError(
+                    $"[CharacterSelect] Malformed CsLaunch args ({args?.Length ?? 0}): [{string.Join(",", args ?? System.Array.Empty<string>())}] — treating as protocol error."
+                );
+                OnRemoteProtocolError();
+                return;
+            }
             _committed = true;
             Commit();
+        }
+
+        /// <summary>
+        /// Host-side: resolve any Random slots once on the authoritative
+        /// side and serialize the final per-slot selection into launch
+        /// args. The host then applies these same args on chat echo, so
+        /// the host and non-host commit from identical state. Fields
+        /// carried: character index, skin index, combo mode, mania
+        /// difficulty, beat-cancel window — the set that feeds into
+        /// <see cref="PlayerOptions"/> at commit time.
+        /// </summary>
+        private string[] BuildResolvedLaunchArgs()
+        {
+            ResolveRandomSlotsForCommit();
+            string[] args = new string[10];
+            for (int i = 0; i < 2; i++)
+            {
+                PlayerSelectionState slot = _state.Players[i];
+                int baseIdx = i * 5;
+                args[baseIdx + 0] = slot.CharacterIndex.ToString(CultureInfo.InvariantCulture);
+                args[baseIdx + 1] = slot.SkinIndex.ToString(CultureInfo.InvariantCulture);
+                args[baseIdx + 2] = ((int)slot.ComboMode).ToString(CultureInfo.InvariantCulture);
+                args[baseIdx + 3] = ((int)slot.ManiaDifficulty).ToString(CultureInfo.InvariantCulture);
+                args[baseIdx + 4] = ((int)slot.BeatCancelWindow).ToString(CultureInfo.InvariantCulture);
+            }
+            return args;
+        }
+
+        private bool TryApplyLaunchArgs(string[] args)
+        {
+            if (args == null || args.Length != 10)
+                return false;
+            int[] parsed = new int[10];
+            for (int i = 0; i < 10; i++)
+            {
+                if (!int.TryParse(args[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed[i]))
+                    return false;
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                PlayerSelectionState slot = _state.Players[i];
+                int baseIdx = i * 5;
+                slot.CharacterIndex = parsed[baseIdx + 0];
+                slot.SkinIndex = parsed[baseIdx + 1];
+                slot.ComboMode = (ComboMode)parsed[baseIdx + 2];
+                slot.ManiaDifficulty = (ManiaDifficulty)parsed[baseIdx + 3];
+                slot.BeatCancelWindow = (BeatCancelWindow)parsed[baseIdx + 4];
+            }
+            return true;
         }
 
         /// <summary>
