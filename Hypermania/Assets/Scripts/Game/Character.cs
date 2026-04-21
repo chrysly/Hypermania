@@ -40,6 +40,8 @@ namespace Game
         Grabbed = 32,
         Grab = 33,
         Throw = 34,
+        HeavyAerialFollowUp = 35,
+        MediumAttackFollowUp = 36,
     }
 
     [Serializable]

@@ -394,6 +394,11 @@ namespace Game.Sim
                 Fighters[i].ApplyActiveState(SimFrame, options, options.Players[i].Character, rhythmCancel, GameMode);
             }
 
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                Fighters[i].CapturePostActionState();
+            }
+
             bool anySuperStarted =
                 (!wasSuper0 && Fighters[0].IsSuperAttack) || (!wasSuper1 && Fighters[1].IsSuperAttack);
             if (anySuperStarted)
@@ -957,8 +962,8 @@ namespace Game.Sim
             if (attacker.Data.Kind == HitboxKind.Grabbox)
             {
                 Fighters[defender.Owner]
-                    .ApplyGrab(SimFrame, attacker.Data, attacker.Box.Pos, ref Fighters[attacker.Owner]);
-
+                    .ApplyGrab(SimFrame, attacker.Data, attacker.Box.Pos, Fighters[attacker.Owner].FacingDir);
+                Fighters[attacker.Owner].ProcessHit(SimFrame, attacker.Data, options.Players[attacker.Owner].Character);
                 return new HitOutcome { Kind = HitKind.Grabbed, Props = attacker.Data };
             }
 
@@ -986,6 +991,13 @@ namespace Game.Sim
                     defender.Box.ClosestPointToCenter(attacker.Box),
                     mult
                 );
+            if (outcome.Kind == HitKind.Hit)
+            {
+                // Apply on-hit state transitions, which are not allowed on block
+                // TODO: what happens if trade?
+                Fighters[attacker.Owner].ProcessHit(SimFrame, attacker.Data, options.Players[attacker.Owner].Character);
+            }
+            
             if (outcome.Kind == HitKind.Hit || outcome.Kind == HitKind.Blocked)
             {
                 Fighters[attacker.Owner].AttackConnected = true;

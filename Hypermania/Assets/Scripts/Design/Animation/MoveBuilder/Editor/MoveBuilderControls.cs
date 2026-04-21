@@ -1,3 +1,4 @@
+using Game;
 using Game.View;
 using Game.View.Fighters;
 using UnityEditor;
@@ -211,6 +212,15 @@ namespace Design.Animation.MoveBuilder.Editor
             using (new EditorGUI.DisabledScope(p.Kind != HitboxKind.Grabbox))
             {
                 p.GrabPosition = SFloatGUI.Field("Grab Position", p.GrabPosition);
+            }
+
+            using (new EditorGUI.DisabledScope(p.Kind != HitboxKind.Hitbox && p.Kind != HitboxKind.Grabbox))
+            {
+                p.HasTransition = EditorGUILayout.Toggle("Has Transition", p.HasTransition);
+                using (new EditorGUI.DisabledScope(!p.HasTransition))
+                {
+                    p.OnHitTransition = (CharacterState)EditorGUILayout.EnumPopup("On Hit Transition", p.OnHitTransition);
+                }
             }
 
             if (p.Kind == HitboxKind.Hitbox)
