@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game;
+using Game.Sim;
 using MemoryPack;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -49,6 +50,8 @@ namespace Design.Animation
         public KnockdownKind KnockdownKind;
         public SVector2 Knockback;
         public SVector2 GrabPosition;
+        public bool HasTransition;
+        public CharacterState OnHitTransition;
 
         public bool Equals(BoxProps other) =>
             Kind == other.Kind
@@ -60,7 +63,9 @@ namespace Design.Animation
             && KnockdownKind == other.KnockdownKind
             && HitstopTicks == other.HitstopTicks
             && BlockstopTicks == other.BlockstopTicks
-            && GrabPosition == other.GrabPosition;
+            && GrabPosition == other.GrabPosition
+            && HasTransition == other.HasTransition
+            && OnHitTransition == other.OnHitTransition;
 
         public override bool Equals(object obj) => obj is BoxProps other && Equals(other);
 
@@ -69,7 +74,9 @@ namespace Design.Animation
                 HashCode.Combine(Kind, AttackKind, HitstunTicks, Damage, BlockstunTicks, KnockdownKind, Knockback),
                 HitstopTicks,
                 BlockstopTicks,
-                GrabPosition
+                GrabPosition,
+                HasTransition,
+                OnHitTransition
             );
 
         public static bool operator ==(BoxProps a, BoxProps b) => a.Equals(b);
@@ -127,6 +134,8 @@ namespace Design.Animation
         public bool GravityEnabled = true;
         public bool ShouldApplyVel;
         public SVector2 ApplyVelocity;
+        public bool ShouldTeleport;
+        public SVector2 TeleportLocation;
 
         public FrameData Clone()
         {
@@ -136,6 +145,8 @@ namespace Design.Animation
             copy.Floating = Floating;
             copy.ShouldApplyVel = ShouldApplyVel;
             copy.ApplyVelocity = ApplyVelocity;
+            copy.ShouldTeleport = ShouldTeleport;
+            copy.TeleportLocation = TeleportLocation;
             copy.GravityEnabled = GravityEnabled;
             return copy;
         }
@@ -150,6 +161,8 @@ namespace Design.Animation
             FrameType = other.FrameType;
             ShouldApplyVel = other.ShouldApplyVel;
             ApplyVelocity = other.ApplyVelocity;
+            ShouldTeleport = other.ShouldTeleport;
+            TeleportLocation = other.TeleportLocation;
             GravityEnabled = other.GravityEnabled;
         }
 
@@ -168,6 +181,8 @@ namespace Design.Animation
             hc.Add(Floating);
             hc.Add(ShouldApplyVel);
             hc.Add(ApplyVelocity);
+            hc.Add(ShouldTeleport);
+            hc.Add(TeleportLocation);
             hc.Add(GravityEnabled);
             return hc.ToHashCode();
         }
@@ -195,7 +210,121 @@ namespace Design.Animation
         public int TotalTicks => Frames.Count;
         public bool AnimLoops => Clip.isLooping;
         public bool ComboEligible = true;
+        public CharacterState Followup = CharacterState.Idle;
+        public InputFlags FollowupInput = InputFlags.None;
         public List<FrameData> Frames = new List<FrameData>();
+
+        [NonSerialized]
+        private int _startupTicks;
+
+        [NonSerialized]
+        private int _activeTicks;
+
+        [NonSerialized]
+        private int _recoveryTicks;
+
+        [NonSerialized]
+        private int _lastHitReferenceFrame;
+
+        [NonSerialized]
+        private int _lastHitHitstunTicks;
+
+        [NonSerialized]
+        private bool _frameDataCached;
+
+        public int StartupTicks
+        {
+            get
+            {
+                EnsureFrameDataCached();
+                return _startupTicks;
+            }
+        }
+        public int ActiveTicks
+        {
+            get
+            {
+                EnsureFrameDataCached();
+                return _activeTicks;
+            }
+        }
+        public int RecoveryTicks
+        {
+            get
+            {
+                EnsureFrameDataCached();
+                return _recoveryTicks;
+            }
+        }
+
+        /// <summary>
+        /// Frame-advantage on hit, measured from the first hitbox in the last contiguous
+        /// interval of hitbox-bearing frames (the reference hit). Positive means the
+        /// attacker becomes actionable before the defender leaves hitstun.
+        /// Returns 0 for moves with no hitbox.
+        /// </summary>
+        public int OnHitAdvantage
+        {
+            get
+            {
+                EnsureFrameDataCached();
+                if (_lastHitReferenceFrame < 0)
+                    return 0;
+                return _lastHitHitstunTicks - (TotalTicks - _lastHitReferenceFrame);
+            }
+        }
+
+        private void OnEnable()
+        {
+            _frameDataCached = false;
+            EnsureFrameDataCached();
+        }
+
+        private void EnsureFrameDataCached()
+        {
+            if (_frameDataCached)
+                return;
+
+            int[] counts = new int[ATTACK_FRAME_TYPE_ORDER.Length];
+            if (IsValidAttack(counts))
+            {
+                _startupTicks = counts[0];
+                _activeTicks = counts[1];
+                _recoveryTicks = counts[2];
+            }
+            else
+            {
+                _startupTicks = _activeTicks = _recoveryTicks = 0;
+            }
+
+            int lastIntervalStart = -1;
+            bool inInterval = false;
+            for (int i = 0; i < Frames.Count; i++)
+            {
+                bool has = Frames[i].HasHitbox(out _);
+                if (has && !inInterval)
+                {
+                    lastIntervalStart = i;
+                    inInterval = true;
+                }
+                else if (!has)
+                {
+                    inInterval = false;
+                }
+            }
+            if (lastIntervalStart >= 0 && Frames[lastIntervalStart].HasHitbox(out BoxProps props))
+            {
+                _lastHitReferenceFrame = lastIntervalStart;
+                _lastHitHitstunTicks = props.HitstunTicks;
+            }
+            else
+            {
+                _lastHitReferenceFrame = -1;
+                _lastHitHitstunTicks = 0;
+            }
+
+            _frameDataCached = true;
+        }
 
         public float GetAnimNormalizedTime(int frame)
         {

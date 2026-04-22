@@ -473,13 +473,8 @@ MonoBehaviour:
       m_Sprite: {fileID: 638058010538535523, guid: 9f785f954604d304898bb06f209dd380, type: 3}
       m_FromMain: 0
       m_SpriteOverride: {fileID: 638058010538535523, guid: 9f785f954604d304898bb06f209dd380, type: 3}
-    - m_Name: rolled up
-      m_Hash: 488736348
-      m_Sprite: {fileID: -370140124156570973, guid: 9f785f954604d304898bb06f209dd380, type: 3}
-      m_FromMain: 0
-      m_SpriteOverride: {fileID: -370140124156570973, guid: 9f785f954604d304898bb06f209dd380, type: 3}
     m_FromMain: 0
-    m_EntryOverrideCount: 6
+    m_EntryOverrideCount: 5
   - m_Name: whip_bottom
     m_Hash: 255745582
     m_CategoryList: []
@@ -524,13 +519,8 @@ MonoBehaviour:
       m_Sprite: {fileID: 4347773022915797978, guid: 9f785f954604d304898bb06f209dd380, type: 3}
       m_FromMain: 0
       m_SpriteOverride: {fileID: 4347773022915797978, guid: 9f785f954604d304898bb06f209dd380, type: 3}
-    - m_Name: empty
-      m_Hash: 684146116
-      m_Sprite: {fileID: 0}
-      m_FromMain: 0
-      m_SpriteOverride: {fileID: 0}
     m_FromMain: 0
-    m_EntryOverrideCount: 9
+    m_EntryOverrideCount: 8
   - m_Name: R_arm_lower
     m_Hash: 958796031
     m_CategoryList: []
@@ -553,6 +543,32 @@ MonoBehaviour:
       m_SpriteOverride: {fileID: -341999786481769111, guid: 9f785f954604d304898bb06f209dd380, type: 3}
     m_FromMain: 0
     m_EntryOverrideCount: 1
+  - m_Name: oneoffs
+    m_Hash: 369805573
+    m_CategoryList: []
+    m_OverrideEntries:
+    - m_Name: L smear 1
+      m_Hash: 257204260
+      m_Sprite: {fileID: -5618122234616636702, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+      m_FromMain: 0
+      m_SpriteOverride: {fileID: -5618122234616636702, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+    - m_Name: L smear 1.5
+      m_Hash: 995332842
+      m_Sprite: {fileID: 1009729502385752591, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+      m_FromMain: 0
+      m_SpriteOverride: {fileID: 1009729502385752591, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+    - m_Name: L smear wide
+      m_Hash: 120902175
+      m_Sprite: {fileID: 2055780611938850605, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+      m_FromMain: 0
+      m_SpriteOverride: {fileID: 2055780611938850605, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+    - m_Name: straight whipsmear
+      m_Hash: 934679691
+      m_Sprite: {fileID: 5096727699688679799, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+      m_FromMain: 0
+      m_SpriteOverride: {fileID: 5096727699688679799, guid: 157d6919b21060b4990be3373e45dd41, type: 3}
+    m_FromMain: 0
+    m_EntryOverrideCount: 4
   m_PrimaryLibraryGUID: 
-  m_ModificationHash: 639123875015847194
+  m_ModificationHash: 639121515780934626
   m_Version: 1
