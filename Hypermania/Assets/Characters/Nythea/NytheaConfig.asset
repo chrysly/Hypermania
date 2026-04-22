@@ -110,10 +110,18 @@ MonoBehaviour:
   Gatlings:
   - From: 5
     To: 8
+  - From: 5
+    To: 11
   - From: 8
     To: 11
   - From: 13
     To: 29
+  - From: 36
+    To: 11
+  - From: 5
+    To: 7
+  - From: 36
+    To: 10
   - From: 11
     To: 13
   Projectiles:

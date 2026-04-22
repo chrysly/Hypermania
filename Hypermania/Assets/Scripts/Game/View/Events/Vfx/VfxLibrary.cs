@@ -13,6 +13,7 @@ namespace Game.View.Events.Vfx
         NoteMiss,
         SmallHit,
         ThinHit,
+        Clank,
     }
 
     [Serializable]

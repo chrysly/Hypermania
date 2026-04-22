@@ -123,6 +123,11 @@ namespace Game.View.Fighters
                 );
             }
 
+            if (state.ClankLocation.HasValue)
+            {
+                vfxManager.AddDesired(VfxKind.Clank, realFrame, position: (Vector2)state.ClankLocation.Value);
+            }
+
             if (state.DashedLastRealFrame)
             {
                 Vector2 dir = (Vector2)(
