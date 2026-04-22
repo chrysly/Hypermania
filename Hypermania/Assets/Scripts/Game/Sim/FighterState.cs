@@ -75,6 +75,7 @@ namespace Game.Sim
 
         public BoxProps? HitProps { get; private set; }
         public SVector2? HitLocation { get; private set; }
+        public SVector2? ClankLocation { get; private set; }
         public bool StateChangedThisRealFrame { get; private set; }
         public bool SuperMaxedThisRealFrame { get; private set; }
         public CharacterState? PostActionState { get; private set; }
@@ -263,6 +264,7 @@ namespace Game.Sim
         {
             HitProps = null;
             HitLocation = null;
+            ClankLocation = null;
             StateChangedThisRealFrame = false;
             SuperMaxedThisRealFrame = false;
             PostActionState = null;
@@ -587,6 +589,13 @@ namespace Game.Sim
                 {
                     IsSuperAttack = true;
                     SuperComboBeats = options.Global.SuperTier1Beats;
+                }
+                // Pre-charge half of SuperCost on commit; refunded in
+                // GameState when the super lands. Whiffs keep the charge,
+                // so throwing out a super without connecting costs 50%.
+                if (IsSuperAttack)
+                {
+                    Super = Mathsf.Max(Super - superCost / (sfloat)2, (sfloat)0);
                 }
             }
 
@@ -938,9 +947,10 @@ namespace Game.Sim
             Position = hitboxCenter + grabPos;
         }
 
-        public void ApplyClank(Frame frame, GameOptions options)
+        public void ApplyClank(Frame frame, GameOptions options, SVector2 location)
         {
             SetState(CharacterState.Hit, frame, frame + options.Global.ClankTicks);
+            ClankLocation = location;
 
             Velocity = SVector2.zero;
         }

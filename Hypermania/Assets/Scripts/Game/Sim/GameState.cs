@@ -283,6 +283,29 @@ namespace Game.Sim
             }
         }
 
+        // While an opponent is in the startup+active window of a super, mask the
+        // defender's input to only bits that were held last frame: releases pass
+        // through, new presses are dropped.
+        private void ApplySuperInputLock(GameOptions options, Span<GameInput> remapInputs)
+        {
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                FighterState opp = Fighters[i ^ 1];
+                if (!opp.IsSuperAttack) continue;
+
+                CharacterState s = opp.State;
+                if (s != CharacterState.HeavyAttack
+                    && s != CharacterState.HeavyAerial
+                    && s != CharacterState.HeavyCrouching) continue;
+
+                HitboxData hd = options.Players[i ^ 1].Character.GetHitboxData(s);
+                if (SimFrame - opp.StateStart >= hd.StartupTicks + hd.ActiveTicks) continue;
+
+                InputFlags prev = Fighters[i].InputH.GetInput(0).Flags;
+                remapInputs[i] = new GameInput(remapInputs[i].Flags & prev);
+            }
+        }
+
         public void Advance(GameOptions options, (GameInput input, InputStatus status)[] inputs)
         {
             if (inputs.Length != options.Players.Length || options.Players.Length != Fighters.Length)
@@ -337,6 +360,11 @@ namespace Game.Sim
             if (options.AlwaysRhythmCancel)
             {
                 rhythmCancel = true;
+            }
+
+            if (GameMode == GameMode.Fighting)
+            {
+                ApplySuperInputLock(options, remapInputs);
             }
 
             // Push the current input into the input history, to read for buffering.
@@ -813,6 +841,18 @@ namespace Game.Sim
                     {
                         sfloat damage = outcome.Props.Damage;
                         UpdateHype(options, attackerBox.Owner, damage);
+
+                        // Refund the half-SuperCost pre-charge that was
+                        // taken when IsSuperAttack was committed. A whiff
+                        // never reaches this branch, so the pre-charge
+                        // stands and the super costs 50%.
+                        if (Fighters[attackerBox.Owner].IsSuperAttack)
+                        {
+                            Fighters[attackerBox.Owner].Super = Mathsf.Min(
+                                Fighters[attackerBox.Owner].Super + options.Global.SuperCost / (sfloat)2,
+                                options.Global.SuperMax
+                            );
+                        }
                     }
 
                     if (outcome.Kind == HitKind.Hit || outcome.Kind == HitKind.Blocked)
@@ -851,15 +891,12 @@ namespace Game.Sim
 
                     // Blocked super: the attack is spent without ever
                     // entering the mania (where super would normally
-                    // dissipate), so deduct half of SuperCost as a
-                    // penalty and clear the super flags so a later frame
+                    // dissipate). The 50% penalty was already taken as
+                    // the pre-charge on commit; we simply skip the
+                    // refund and clear the super flags so a later frame
                     // of the same move can't still trigger a combo.
                     if (outcome.Kind == HitKind.Blocked && Fighters[owners.Item1].IsSuperAttack)
                     {
-                        Fighters[owners.Item1].Super = Mathsf.Max(
-                            Fighters[owners.Item1].Super - options.Global.SuperCost / (sfloat)2,
-                            (sfloat)0
-                        );
                         Fighters[owners.Item1].IsSuperAttack = false;
                         Fighters[owners.Item1].SuperComboBeats = 0;
                     }
@@ -908,9 +945,11 @@ namespace Game.Sim
                 throw new InvalidOperationException("Not clank");
             }
 
+            SVector2 midpoint = (c.BoxA.Box.Pos + c.BoxB.Box.Pos) * (sfloat)0.5f;
+
             // TODO: check if moves are allowed to clank
-            Fighters[c.BoxA.Owner].ApplyClank(SimFrame, options);
-            Fighters[c.BoxB.Owner].ApplyClank(SimFrame, options);
+            Fighters[c.BoxA.Owner].ApplyClank(SimFrame, options, midpoint);
+            Fighters[c.BoxB.Owner].ApplyClank(SimFrame, options, midpoint);
         }
 
         private void HandlePush(GameOptions options, Physics<BoxProps>.Collision c)
