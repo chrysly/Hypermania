@@ -473,8 +473,13 @@ MonoBehaviour:
       m_Sprite: {fileID: 638058010538535523, guid: 9f785f954604d304898bb06f209dd380, type: 3}
       m_FromMain: 0
       m_SpriteOverride: {fileID: 638058010538535523, guid: 9f785f954604d304898bb06f209dd380, type: 3}
+    - m_Name: rolled up
+      m_Hash: 488736348
+      m_Sprite: {fileID: -370140124156570973, guid: 9f785f954604d304898bb06f209dd380, type: 3}
+      m_FromMain: 0
+      m_SpriteOverride: {fileID: -370140124156570973, guid: 9f785f954604d304898bb06f209dd380, type: 3}
     m_FromMain: 0
-    m_EntryOverrideCount: 5
+    m_EntryOverrideCount: 6
   - m_Name: whip_bottom
     m_Hash: 255745582
     m_CategoryList: []
@@ -519,8 +524,13 @@ MonoBehaviour:
       m_Sprite: {fileID: 4347773022915797978, guid: 9f785f954604d304898bb06f209dd380, type: 3}
       m_FromMain: 0
       m_SpriteOverride: {fileID: 4347773022915797978, guid: 9f785f954604d304898bb06f209dd380, type: 3}
+    - m_Name: empty
+      m_Hash: 684146116
+      m_Sprite: {fileID: 0}
+      m_FromMain: 0
+      m_SpriteOverride: {fileID: 0}
     m_FromMain: 0
-    m_EntryOverrideCount: 8
+    m_EntryOverrideCount: 9
   - m_Name: R_arm_lower
     m_Hash: 958796031
     m_CategoryList: []
@@ -570,5 +580,5 @@ MonoBehaviour:
     m_FromMain: 0
     m_EntryOverrideCount: 4
   m_PrimaryLibraryGUID: 
-  m_ModificationHash: 639121515780934626
+  m_ModificationHash: 639123875015847194
   m_Version: 1
