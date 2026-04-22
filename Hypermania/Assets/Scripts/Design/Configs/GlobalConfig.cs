@@ -32,6 +32,7 @@ namespace Design.Configs
         public sfloat Gravity = -20;
         public sfloat GroundY = -3;
         public sfloat WallsX = 4;
+        public sfloat ProjectileGroundFriction = (sfloat)1.5f;
         public int ClankTicks = 30;
         public int ForwardDashCancelAfterTicks = 2;
         public int ForwardDashTicks = 5;

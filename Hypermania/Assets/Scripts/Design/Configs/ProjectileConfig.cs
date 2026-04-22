@@ -16,5 +16,9 @@ namespace Design.Configs
         public SVector2 SpawnOffset;
         public SVector2 Velocity;
         public int LifetimeTicks;
+        public bool ApplyFriction;
+        
+        public bool HasOnDeath;
+        public HitboxData OnDeathHitbox;
     }
 }

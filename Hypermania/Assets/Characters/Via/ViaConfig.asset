@@ -112,4 +112,5 @@ MonoBehaviour:
     To: 8
   - From: 8
     To: 11
-  Projectiles: []
+  Projectiles:
+  - {fileID: 11400000, guid: 0ac431547a91b964d8629bd76100680c, type: 2}

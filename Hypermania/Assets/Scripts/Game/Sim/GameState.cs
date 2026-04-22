@@ -724,7 +724,15 @@ namespace Game.Sim
         {
             for (int i = 0; i < Projectiles.Length; i++)
             {
-                Projectiles[i].Advance(SimFrame, options.Global.WallsX);
+                if (!Projectiles[i].Active)
+                    continue;
+
+                var projConfigs = options.Players[Projectiles[i].Owner].Character.Projectiles;
+                ProjectileConfig config = null;
+                if (projConfigs != null && Projectiles[i].ConfigIndex < projConfigs.Count)
+                    config = projConfigs[Projectiles[i].ConfigIndex];
+
+                Projectiles[i].Advance(SimFrame, options, config);
             }
         }
 
@@ -773,18 +781,36 @@ namespace Game.Sim
                 (int, int) hitPair = (-1, -1);
                 if (c.BoxA.Data.Kind == HitboxKind.Hitbox && c.BoxB.Data.Kind == HitboxKind.Hurtbox)
                 {
+                    if (c.BoxB.ProjectileIndex >= 0)
+                    {
+                        Projectiles[c.BoxB.ProjectileIndex].MarkedForDestroy = true;
+                        if (c.BoxA.ProjectileIndex >= 0)
+                            Projectiles[c.BoxA.ProjectileIndex].MarkedForDestroy = true;
+                        continue;
+                    }
                     hitPair = (c.BoxA.Owner, c.BoxB.Owner);
                 }
                 else if (c.BoxA.Data.Kind == HitboxKind.Hurtbox && c.BoxB.Data.Kind == HitboxKind.Hitbox)
                 {
+                    if (c.BoxA.ProjectileIndex >= 0)
+                    {
+                        Projectiles[c.BoxA.ProjectileIndex].MarkedForDestroy = true;
+                        if (c.BoxB.ProjectileIndex >= 0)
+                            Projectiles[c.BoxB.ProjectileIndex].MarkedForDestroy = true;
+                        continue;
+                    }
                     hitPair = (c.BoxB.Owner, c.BoxA.Owner);
                 }
                 else if (c.BoxA.Data.Kind == HitboxKind.Grabbox && c.BoxB.Data.Kind == HitboxKind.Hurtbox)
                 {
+                    if (c.BoxB.ProjectileIndex >= 0)
+                        continue;
                     hitPair = (c.BoxA.Owner, c.BoxB.Owner);
                 }
                 else if (c.BoxA.Data.Kind == HitboxKind.Hurtbox && c.BoxB.Data.Kind == HitboxKind.Grabbox)
                 {
+                    if (c.BoxA.ProjectileIndex >= 0)
+                        continue;
                     hitPair = (c.BoxB.Owner, c.BoxA.Owner);
                 }
                 else if (c.BoxA.Data.Kind == HitboxKind.Hitbox && c.BoxB.Data.Kind == HitboxKind.Hitbox)
@@ -964,6 +990,27 @@ namespace Game.Sim
                 throw new InvalidOperationException("Not push");
             }
 
+            bool aIsProj = c.BoxA.ProjectileIndex >= 0;
+            bool bIsProj = c.BoxB.ProjectileIndex >= 0;
+
+            if (aIsProj || bIsProj)
+            {
+                sfloat aFactor = aIsProj ? sfloat.One : sfloat.Zero;
+                sfloat bFactor = bIsProj ? sfloat.One : sfloat.Zero;
+                sfloat total = aFactor + bFactor;
+                sfloat aPush = aFactor / total;
+                sfloat bPush = bFactor / total;
+
+                sfloat aDelta = c.BoxA.Box.Pos.x < c.BoxB.Box.Pos.x ? -c.OverlapX * aPush : c.OverlapX * aPush;
+                sfloat bDelta = c.BoxA.Box.Pos.x < c.BoxB.Box.Pos.x ? c.OverlapX * bPush : -c.OverlapX * bPush;
+
+                if (aIsProj)
+                    Projectiles[c.BoxA.ProjectileIndex].Position.x += aDelta;
+                if (bIsProj)
+                    Projectiles[c.BoxB.ProjectileIndex].Position.x += bDelta;
+                return;
+            }
+
             if (
                 Fighters[c.BoxA.Owner].State == CharacterState.Grabbed
                 || Fighters[c.BoxB.Owner].State == CharacterState.Grabbed
@@ -975,17 +1022,17 @@ namespace Game.Sim
             sfloat aPushFactor = Fighters[c.BoxA.Owner].OnGround(options) ? (sfloat)1f : (sfloat)0.1f;
             sfloat bPushFactor = Fighters[c.BoxB.Owner].OnGround(options) ? (sfloat)1f : (sfloat)0.1f;
 
-            sfloat aPush = aPushFactor / (aPushFactor + bPushFactor);
-            sfloat bPush = bPushFactor / (aPushFactor + bPushFactor);
+            sfloat aPushFighter = aPushFactor / (aPushFactor + bPushFactor);
+            sfloat bPushFighter = bPushFactor / (aPushFactor + bPushFactor);
             if (c.BoxA.Box.Pos.x < c.BoxB.Box.Pos.x)
             {
-                Fighters[c.BoxA.Owner].Position.x -= c.OverlapX * aPush;
-                Fighters[c.BoxB.Owner].Position.x += c.OverlapX * bPush;
+                Fighters[c.BoxA.Owner].Position.x -= c.OverlapX * aPushFighter;
+                Fighters[c.BoxB.Owner].Position.x += c.OverlapX * bPushFighter;
             }
             else
             {
-                Fighters[c.BoxA.Owner].Position.x += c.OverlapX * aPush;
-                Fighters[c.BoxB.Owner].Position.x -= c.OverlapX * bPush;
+                Fighters[c.BoxA.Owner].Position.x += c.OverlapX * aPushFighter;
+                Fighters[c.BoxB.Owner].Position.x -= c.OverlapX * bPushFighter;
             }
         }
 

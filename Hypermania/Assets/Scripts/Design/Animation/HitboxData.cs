@@ -212,6 +212,7 @@ namespace Design.Animation
         public bool ComboEligible = true;
         public CharacterState Followup = CharacterState.Idle;
         public InputFlags FollowupInput = InputFlags.None;
+        public bool IgnoreOwner;
         public List<FrameData> Frames = new List<FrameData>();
 
         [NonSerialized]
@@ -433,6 +434,7 @@ namespace Design.Animation
             var hc = new HashCode();
 
             hc.Add(Clip ? Clip.GetInstanceID() : 0);
+            hc.Add(IgnoreOwner);
             hc.Add(Frames != null ? Frames.Count : 0);
 
             if (Frames != null)

@@ -803,6 +803,7 @@ namespace Game.Sim
         public void AddBoxes(Frame frame, CharacterConfig config, Physics<BoxProps> physics, int handle)
         {
             int tick = frame - StateStart;
+            HitboxData hitboxData = config.GetHitboxData(State);
             FrameData frameData = config.GetFrameData(State, tick);
 
             foreach (var box in frameData.Boxes)
@@ -821,7 +822,8 @@ namespace Game.Sim
                     newProps.Knockback.x *= -1;
                 }
 
-                physics.AddBox(handle, centerWorld, sizeLocal, newProps);
+                bool ignoreOwner = hitboxData != null && hitboxData.IgnoreOwner;
+                physics.AddBox(handle, centerWorld, sizeLocal, newProps, -1, ignoreOwner);
             }
         }
 

@@ -18,6 +18,8 @@ MonoBehaviour:
     rawValue: 0
   WallsX:
     rawValue: 1088421888
+  ProjectileGroundFriction:
+    rawValue: 1073741824
   ClankTicks: 30
   ForwardDashCancelAfterTicks: 5
   ForwardDashTicks: 8
@@ -55,6 +57,7 @@ MonoBehaviour:
   ManiaFailStunTicks: 30
   ManiaFailKnockbackMagnitude:
     rawValue: 1069547520
+  StalingBufferSize: 8
   _inputConfig:
     DashWindow: 12
     SuperJumpWindow: 8
