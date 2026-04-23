@@ -15,6 +15,15 @@ namespace Game.Sim
         public InputFlags Input;
         public Frame BeatFrame;
         public bool IsMovement;
+        /// <summary>
+        /// True when this beat carries no attacker input — the player still
+        /// has to press the mania note, but <see cref="Input"/> is
+        /// <see cref="InputFlags.None"/>. Emitted by the generator as the
+        /// second half of an "attack + no-op" pair when an on-beat attack's
+        /// hitstop would have otherwise forced a dash fallback on the next
+        /// beat. Grants a decaying damage bonus to the next real attack.
+        /// </summary>
+        public bool IsNoOp;
     }
 
     /// <summary>
@@ -112,6 +121,12 @@ namespace Game.Sim
         private int _noteHitHalfRange;
 
         /// <summary>
+        /// Cached <see cref="AudioConfig"/> reference for on-beat tests.
+        /// Set at the start of <see cref="Run"/>.
+        /// </summary>
+        private AudioConfig _audio;
+
+        /// <summary>
         /// Cache of move reach (max horizontal hitbox extent from attacker origin)
         /// per CharacterState. Reach is config-static so it only needs to be
         /// computed once per run.
@@ -160,6 +175,7 @@ namespace Game.Sim
             _attackerIndex = attackerIndex;
             _attackerConfig = options.Players[attackerIndex].Character;
             _noteHitHalfRange = (int)options.Players[attackerIndex].BeatCancelWindow;
+            _audio = options.Global.Audio;
 
             // Clone Players so we can suppress the attacker's ComboMode on the
             // generator's copy (forcing Freestyle) without leaking the change
@@ -302,6 +318,7 @@ namespace Game.Sim
                             Input = chosen.Input,
                             BeatFrame = currentBeat,
                             IsMovement = false,
+                            IsNoOp = false,
                         }
                     );
 
@@ -311,6 +328,89 @@ namespace Game.Sim
                     prevKb = chosen.KnockbackSqr;
                     prevReach = chosen.Reach;
                     continue;
+                }
+
+                // Relaxed on-beat pass: when the current note sits exactly on
+                // a quarter-note grid position, we're allowed to pick an
+                // attack whose hitstop bleeds into beat i+1's window —
+                // provided beat i+1 becomes a no-op (injects no attacker
+                // input) and the hitstop clears before beat i+2's window.
+                // This turns runs of tightly-spaced notes (eighths) into an
+                // attack+no-op pattern instead of all-dash fallbacks.
+                bool canTryNoOp =
+                    !isLastBeat
+                    && i + 2 < noteFrames.Length   // must have a beat i+2 to test against
+                    && _audio != null
+                    && _audio.IsOnBeat(currentBeat);
+                if (canTryNoOp)
+                {
+                    Frame beatAfterNoop = noteFrames[i + 2];
+                    RestoreWorking();
+                    candidates.Clear();
+                    foreach (InputFlags attack in AttackInputs)
+                    {
+                        TryCandidate(candidates, attack, beatAfterNoop);
+                        TryCandidate(candidates, attack | InputFlags.Down, beatAfterNoop);
+                    }
+
+                    int relaxedHash = DeterministicHash(state.RealFrame.No, i) ^ unchecked((int)0x51ED270F);
+                    int relaxedIdx = PickBestCandidate(
+                        candidates,
+                        hasPrev,
+                        prevKb,
+                        prevReach,
+                        relaxedHash,
+                        false
+                    );
+                    if (relaxedIdx >= 0)
+                    {
+                        MoveTestResult chosen = candidates[relaxedIdx];
+
+                        RestoreWorking();
+                        ApplyInputToWorking(chosen.Input);
+
+                        moves.Add(
+                            new GeneratedComboMove
+                            {
+                                Input = chosen.Input,
+                                BeatFrame = currentBeat,
+                                IsMovement = false,
+                                IsNoOp = false,
+                            }
+                        );
+                        CaptureBeatSnapshot(beatSnapshots, currentBeat, nextBeat);
+
+                        hasPrev = true;
+                        prevKb = chosen.KnockbackSqr;
+                        prevReach = chosen.Reach;
+
+                        // Beat i+1 becomes a no-op. Mirror the real game's
+                        // DoManiaStep: dispatch at noteTick + HitHalfRange
+                        // with HitInput = None, rhythmCancel = true. That's
+                        // exactly ApplyInputToWorking(None) — which toggles
+                        // AlwaysRhythmCancel for the one frame.
+                        Frame noOpBeat = nextBeat;
+                        AdvanceWorkingTo(noOpBeat + _noteHitHalfRange - 1);
+                        ApplyInputToWorking(InputFlags.None);
+                        // Mirror DoManiaStep's Input-event side effect so the
+                        // generator's per-beat snapshot stays byte-equivalent
+                        // to the real Mania sim (ComboVerifyDebug diff).
+                        _working.Fighters[_attackerIndex].RegisterManiaNoOp();
+
+                        moves.Add(
+                            new GeneratedComboMove
+                            {
+                                Input = InputFlags.None,
+                                BeatFrame = noOpBeat,
+                                IsMovement = false,
+                                IsNoOp = true,
+                            }
+                        );
+                        CaptureBeatSnapshot(beatSnapshots, noOpBeat, beatAfterNoop);
+
+                        i++; // skip the beat we just consumed as a no-op
+                        continue;
+                    }
                 }
 
                 // No direct attack qualified. Before settling for an
@@ -373,6 +473,7 @@ namespace Game.Sim
                         Input = chosenMovement,
                         BeatFrame = currentBeat,
                         IsMovement = true,
+                        IsNoOp = false,
                     }
                 );
 
@@ -412,9 +513,15 @@ namespace Game.Sim
         /// beat snapshot, applies the input, and advances until the move hits
         /// or MAX_TEST_FRAMES is reached. Appends a result to <paramref name="candidates"/>
         /// only if the move connected AND the resulting hitstop does not overlap
-        /// the next note's hit window.
+        /// <paramref name="windowBeat"/>'s hit window.
+        ///
+        /// <paramref name="windowBeat"/> is the beat whose input window must
+        /// stay free of hitstop. In the normal strict path this is the
+        /// immediately-following beat; in the on-beat no-op path it's the
+        /// beat AFTER the one being replaced with a no-op (since the no-op
+        /// note injects no input and is hit purely for the timing).
         /// </summary>
-        private void TryCandidate(List<MoveTestResult> candidates, InputFlags input, Frame nextBeat)
+        private void TryCandidate(List<MoveTestResult> candidates, InputFlags input, Frame windowBeat)
         {
             // Respect per-move opt-out: moves whose HitboxData.ComboEligible is
             // false must never appear in a generated combo.
@@ -427,9 +534,9 @@ namespace Game.Sim
 
             int defenderIndex = 1 - _attackerIndex;
 
-            bool checkWindow = nextBeat < Frame.Infinity;
-            Frame windowStart = checkWindow ? nextBeat - _noteHitHalfRange : Frame.Infinity;
-            Frame windowEnd = checkWindow ? nextBeat + _noteHitHalfRange : Frame.Infinity;
+            bool checkWindow = windowBeat < Frame.Infinity;
+            Frame windowStart = checkWindow ? windowBeat - _noteHitHalfRange : Frame.Infinity;
+            Frame windowEnd = checkWindow ? windowBeat + _noteHitHalfRange : Frame.Infinity;
 
             bool hit = false;
             BoxProps hitProps = default;

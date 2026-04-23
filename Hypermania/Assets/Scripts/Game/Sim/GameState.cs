@@ -25,7 +25,7 @@ namespace Game.Sim
 
     public enum ComboMode
     {
-        Assisted,
+        Rhythm,
         Freestyle,
     }
 
@@ -378,6 +378,25 @@ namespace Game.Sim
                 Fighters[i].InputH.PushInput(remapInputs[i]);
             }
 
+            // Drain freestyle super every real frame, including during hitstop,
+            // so the buff window doesn't get stretched out by the extra hitstop
+            // frames each hit produces.
+            if (GameMode == GameMode.Fighting)
+            {
+                sfloat freestyleDrainPerFrame = options.Global.SuperCost / (sfloat)options.Global.Audio.BeatsToFrame(8);
+                for (int i = 0; i < Fighters.Length; i++)
+                {
+                    if (Fighters[i].FreestyleActive)
+                    {
+                        Fighters[i].Super = Mathsf.Max(Fighters[i].Super - freestyleDrainPerFrame, (sfloat)0);
+                        if (Fighters[i].Super == (sfloat)0)
+                        {
+                            Fighters[i].FreestyleActive = false;
+                        }
+                    }
+                }
+            }
+
             // if hitstop, only grab inputs and return
             if (HitstopFramesRemaining > 0)
             {
@@ -682,10 +701,19 @@ namespace Game.Sim
                             ClearLockedHitstun();
                             Fighters[i].RhythmComboFinisherActive = false;
                             Fighters[i].RhythmComboTier2 = false;
+                            Fighters[i].ResetNoOpBonus();
                             break;
                         case ManiaEventKind.Input:
                             outInputs[i].Flags |= ev.Note.HitInput;
                             rhythmCancel = true;
+                            if (ev.Note.HitInput == InputFlags.None)
+                            {
+                                // No-op note: player pressed the beat but no
+                                // attacker input was authored. Accrue a share
+                                // of the 0.25 bonus budget for the next real
+                                // attack's damage multiplier.
+                                Fighters[i].RegisterManiaNoOp();
+                            }
                             if (ev.Note.Id == Manias[i].TotalNoteCount - 1)
                             {
                                 Fighters[i].RhythmComboFinisherActive = true;
@@ -718,6 +746,7 @@ namespace Game.Sim
                             ClearLockedHitstun();
                             Fighters[i].RhythmComboFinisherActive = false;
                             Fighters[i].RhythmComboTier2 = false;
+                            Fighters[i].ResetNoOpBonus();
                             break;
                     }
                 }
@@ -963,7 +992,7 @@ namespace Game.Sim
 
                     //to start a rhythm combo, we must sure that the move was not traded
                     if (
-                        options.Players[owners.Item1].ComboMode == ComboMode.Assisted
+                        options.Players[owners.Item1].ComboMode == ComboMode.Rhythm
                         && !PhysicsCtx.HurtHitCollisions.ContainsKey((owners.Item2, owners.Item1))
                         && GameMode == GameMode.Fighting
                         && outcome.Kind == HitKind.Hit
@@ -986,6 +1015,18 @@ namespace Game.Sim
                         PendingRhythmComboAttacker = owners.Item1;
                         // TODO: show mania screen only after the maximum rollback frames to ensure no visual artifacting
                     }
+                    else if (
+                        options.Players[owners.Item1].ComboMode == ComboMode.Freestyle
+                        && !PhysicsCtx.HurtHitCollisions.ContainsKey((owners.Item2, owners.Item1))
+                        && GameMode == GameMode.Fighting
+                        && outcome.Kind == HitKind.Hit
+                        && Fighters[owners.Item1].IsSuperAttack
+                    )
+                    {
+                        Fighters[owners.Item1].FreestyleActive = true;
+                        Fighters[owners.Item1].IsSuperAttack = false;
+                        Fighters[owners.Item1].SuperComboBeats = 0;
+                    }
 
                     // Blocked super: the attack is spent without ever
                     // entering the mania (where super would normally
@@ -999,8 +1040,10 @@ namespace Game.Sim
                         Fighters[owners.Item1].SuperComboBeats = 0;
                     }
 
-                    // Add super checking to start a combo so that the combo only starts if the meter is alr at max
-                    if (outcome.Kind == HitKind.Hit && GameMode == GameMode.Fighting)
+                    // Add super checking to start a combo so that the combo only starts if the meter is alr at max.
+                    // Skip while FreestyleActive so hits landed during freestyle don't refill the draining meter
+                    // (and so the activating super hit itself doesn't extend the window past the intended drain).
+                    if (outcome.Kind == HitKind.Hit && GameMode == GameMode.Fighting && !Fighters[attackerBox.Owner].FreestyleActive)
                     {
                         sfloat damage = outcome.Props.Damage;
                         Fighters[attackerBox.Owner].AddSuper(damage, options);
@@ -1152,12 +1195,24 @@ namespace Game.Sim
                 mult = hypeMult * comboMult * staleMult;
             }
 
+            BoxProps propsForHit = attacker.Data;
+            if (Fighters[attacker.Owner].FreestyleActive)
+            {
+                mult *= options.Global.FreestyleDamageMultiplier;
+                propsForHit.HitstunTicks = (int)((sfloat)propsForHit.HitstunTicks * options.Global.FreestyleHitstunMultiplier);
+            }
+
+            // Consume any accumulated rhythm no-op bonus (1.0 → up to 1.25)
+            // so it applies exactly once, to the next attack that lands after
+            // one or more no-op beats in the current mania.
+            mult *= Fighters[attacker.Owner].ConsumeNoOpBonus();
+
             HitOutcome outcome = Fighters[defender.Owner]
                 .ApplyHit(
                     SimFrame,
                     Fighters[attacker.Owner].StateStart,
                     options.Players[defender.Owner].Character,
-                    attacker.Data,
+                    propsForHit,
                     defender.Box.ClosestPointToCenter(attacker.Box),
                     mult
                 );
