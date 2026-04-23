@@ -50,6 +50,8 @@ namespace Design.Animation
         public KnockdownKind KnockdownKind;
         public SVector2 Knockback;
         public SVector2 GrabPosition;
+        public bool GrabsGrounded;
+        public bool GrabsAirborne;
         public bool Techable;
         public bool HasTransition;
         public bool Unblockable;
@@ -66,6 +68,8 @@ namespace Design.Animation
             && HitstopTicks == other.HitstopTicks
             && BlockstopTicks == other.BlockstopTicks
             && GrabPosition == other.GrabPosition
+            && GrabsGrounded == other.GrabsGrounded
+            && GrabsAirborne == other.GrabsAirborne
             && Techable == other.Techable
             && HasTransition == other.HasTransition
             && Unblockable == other.Unblockable
@@ -76,9 +80,7 @@ namespace Design.Animation
         public override int GetHashCode() =>
             HashCode.Combine(
                 HashCode.Combine(Kind, AttackKind, HitstunTicks, Damage, BlockstunTicks, KnockdownKind, Knockback),
-                HitstopTicks,
-                BlockstopTicks,
-                GrabPosition,
+                HashCode.Combine(HitstopTicks, BlockstopTicks, GrabPosition, GrabsGrounded, GrabsAirborne),
                 Techable,
                 HasTransition,
                 Unblockable,

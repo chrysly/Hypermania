@@ -1194,7 +1194,18 @@ namespace Game.Sim
 
             if (attacker.Data.Kind == HitboxKind.Grabbox)
             {
-                if (Fighters[attacker.Owner].Location != Fighters[defender.Owner].Location)
+                bool grabsGrounded = attacker.Data.GrabsGrounded;
+                bool grabsAirborne = attacker.Data.GrabsAirborne;
+                // Legacy fallback: grabboxes authored before these flags existed load as
+                // both-false. Treat that as "grabs both" — a grab that can never connect
+                // is a nonsense configuration, so the sentinel is safe to repurpose.
+                if (!grabsGrounded && !grabsAirborne)
+                {
+                    grabsGrounded = true;
+                    grabsAirborne = true;
+                }
+                bool defenderGrounded = Fighters[defender.Owner].Location == FighterLocation.Grounded;
+                if (defenderGrounded ? !grabsGrounded : !grabsAirborne)
                 {
                     return new HitOutcome { Kind = HitKind.None };
                 }
