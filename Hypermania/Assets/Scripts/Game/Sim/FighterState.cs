@@ -942,12 +942,14 @@ namespace Game.Sim
             // frame while the fighter is lying down.
             if (State == CharacterState.Knockdown && StateEnd == Frame.Infinity)
             {
+                Velocity = SVector2.zero;
                 SetState(CharacterState.Knockdown, frame, frame + options.Global.LightKnockdownTicks, true);
                 return;
             }
 
             if (State == CharacterState.HeavyKnockdown && StateEnd == Frame.Infinity)
             {
+                Velocity = SVector2.zero;
                 SetState(CharacterState.HeavyKnockdown, frame, frame + options.Global.HeavyKnockdownTicks, true);
                 return;
             }

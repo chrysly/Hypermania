@@ -96,7 +96,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: ca7cee3bf8a92c320bfa17c7e66c2748, type: 2}
     - {fileID: 11400000, guid: f15ccb862e8cab1de92a5b8300795d41, type: 2}
     - {fileID: 11400000, guid: 54621a6ec599c53329497872728662a8, type: 2}
-    - {fileID: 11400000, guid: b823ab6ff6abc4e19860515b60dde0e2, type: 2}
+    - {fileID: 11400000, guid: 119df3c9f216d104d8a0ab45160b66a6, type: 2}
     - {fileID: 11400000, guid: 1ffcd5f04379a683297da713073bd0bb, type: 2}
     - {fileID: 11400000, guid: aa87373ccaf1f30a39e16bf42d10e572, type: 2}
     - {fileID: 11400000, guid: 5bd1c0ba4fd68c61aa5b25eade712298, type: 2}
@@ -113,6 +113,8 @@ MonoBehaviour:
     - {fileID: 11400000, guid: a4a09fb1d790b6041b2b8ae4eb7d0f33, type: 2}
     - {fileID: 11400000, guid: bdf1bc94e8de9a34bb6aa50ae488cce9, type: 2}
     - {fileID: 11400000, guid: fef47fb6a49229b47bf508f50d7136b8, type: 2}
+    - {fileID: 11400000, guid: fba29297a217f0b3293fe4dd64a90655, type: 2}
+    - {fileID: 11400000, guid: 4840cb431b0e8834288160696e35ce2f, type: 2}
   Gatlings:
   - From: 5
     To: 8

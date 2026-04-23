@@ -37,9 +37,18 @@ namespace Game.Sim
             // from PartialSimFrameCount sub-frame gating under
             // SpeedRatio=0.5, plus the switch statement re-entering on
             // GameMode==Mania the frame after the transition).
+            //
+            // ManiaStartPaddingTicks adds additional sim frames after slow-mo
+            // ends (inside GameMode.Mania at SpeedRatio=1, before any queued
+            // note), so heavy aerial knockback / super followups can resolve
+            // and the defender can land before the first note fires.
             AudioConfig audio = options.Global.Audio;
             int halfRange = state.Config.HitHalfRange;
-            Frame earliestStart = realFrame + options.Global.ManiaSlowTicks + halfRange + 3;
+            Frame earliestStart = realFrame
+                + options.Global.ManiaSlowTicks
+                + options.Global.ManiaStartPaddingTicks
+                + halfRange
+                + 3;
 
             // Next quarter-note boundary at or after earliestStart. Use the
             // exact fpb ratio rather than the pre-rounded FramesPerBeat — the

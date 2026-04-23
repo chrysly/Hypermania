@@ -1942,7 +1942,7 @@ MonoBehaviour:
         BlockstunTicks: 12
         HitstopTicks: 7
         BlockstopTicks: 3
-        KnockdownKind: 0
+        KnockdownKind: 2
         Knockback:
           x:
             rawValue: 1077553923
@@ -2033,7 +2033,7 @@ MonoBehaviour:
         BlockstunTicks: 12
         HitstopTicks: 7
         BlockstopTicks: 3
-        KnockdownKind: 0
+        KnockdownKind: 2
         Knockback:
           x:
             rawValue: 1077553923
@@ -2124,7 +2124,7 @@ MonoBehaviour:
         BlockstunTicks: 12
         HitstopTicks: 7
         BlockstopTicks: 3
-        KnockdownKind: 0
+        KnockdownKind: 2
         Knockback:
           x:
             rawValue: 1077553923

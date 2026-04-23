@@ -56,6 +56,12 @@ MonoBehaviour:
   ManiaFailStunTicks: 30
   ManiaFailKnockbackMagnitude:
     rawValue: 1069547520
+  GrabTechWindow: 10
+  GrabTechStunTicks: 20
+  LightKnockdownTicks: 30
+  HeavyKnockdownTicks: 60
+  GrabTechKnockbackMagnitude:
+    rawValue: 1073741824
   StalingBufferSize: 8
   RhythmComboFinisherDamageMult:
     rawValue: 1067030938
@@ -63,6 +69,8 @@ MonoBehaviour:
     rawValue: 1069547520
   FreestyleHitstunMultiplier:
     rawValue: 1067450368
+  NormalDifficultyDamageMultiplier:
+    rawValue: 1058642330
   _inputConfig:
     DashWindow: 12
     SuperJumpWindow: 8

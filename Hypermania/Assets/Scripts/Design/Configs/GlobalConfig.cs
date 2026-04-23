@@ -58,6 +58,7 @@ namespace Design.Configs
         public int SuperRecoveryFrames = 0;
         public sfloat FloatingFactor = (sfloat)1.3f;
         public int ManiaSlowTicks = 60;
+        public int ManiaStartPaddingTicks = 30;
         public int ManiaFailStunTicks = 30;
         public sfloat ManiaFailKnockbackMagnitude = (sfloat)1.5f;
         public int GrabTechWindow = 10;
