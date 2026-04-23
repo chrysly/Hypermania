@@ -706,7 +706,7 @@ namespace Game.Sim
                 return;
             }
 
-            if (dashCancelEligible && InputH.IsHeld(ForwardInput) && State == CharacterState.ForwardDash)
+            if (simFrame + 1 >= StateEnd && InputH.IsHeld(ForwardInput) && State == CharacterState.ForwardDash)
             {
                 SetState(CharacterState.Running, simFrame, Frame.Infinity);
             }
