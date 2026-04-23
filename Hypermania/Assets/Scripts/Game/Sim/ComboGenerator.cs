@@ -275,12 +275,22 @@ namespace Game.Sim
                 AdvanceToDispatchOf(currentBeat);
                 SnapshotWorking();
 
-                if (TryStrictAttack(
-                    state, candidates, i, isLastBeat,
-                    hasPrev, prevKb, prevReach,
-                    currentBeat, nextBeat,
-                    moves, beatSnapshots,
-                    out MoveTestResult strict))
+                if (
+                    TryStrictAttack(
+                        state,
+                        candidates,
+                        i,
+                        isLastBeat,
+                        hasPrev,
+                        prevKb,
+                        prevReach,
+                        currentBeat,
+                        nextBeat,
+                        moves,
+                        beatSnapshots,
+                        out MoveTestResult strict
+                    )
+                )
                 {
                     hasPrev = true;
                     prevKb = strict.KnockbackSqr;
@@ -292,12 +302,23 @@ namespace Game.Sim
                 // a quarter-note grid position, and a beat i+2 to exist so
                 // the relaxed hitstop check has a target window.
                 bool canTryNoOp = i + 2 < noteFrames.Length && _audio.IsOnBeat(currentBeat);
-                if (canTryNoOp && TryOnBeatNoOpPair(
-                    state, candidates, i,
-                    hasPrev, prevKb, prevReach,
-                    currentBeat, nextBeat, noteFrames[i + 2],
-                    moves, beatSnapshots,
-                    out MoveTestResult relaxed))
+                if (
+                    canTryNoOp
+                    && TryOnBeatNoOpPair(
+                        state,
+                        candidates,
+                        i,
+                        hasPrev,
+                        prevKb,
+                        prevReach,
+                        currentBeat,
+                        nextBeat,
+                        noteFrames[i + 2],
+                        moves,
+                        beatSnapshots,
+                        out MoveTestResult relaxed
+                    )
+                )
                 {
                     hasPrev = true;
                     prevKb = relaxed.KnockbackSqr;
@@ -574,7 +595,14 @@ namespace Game.Sim
         {
             RestoreWorking();
             ApplyInputToWorking(input);
-            moves.Add(new GeneratedComboMove { Input = input, BeatFrame = currentBeat, Kind = kind });
+            moves.Add(
+                new GeneratedComboMove
+                {
+                    Input = input,
+                    BeatFrame = currentBeat,
+                    Kind = kind,
+                }
+            );
             CaptureBeatSnapshot(beatSnapshots, currentBeat, nextBeat);
         }
 
@@ -594,7 +622,14 @@ namespace Game.Sim
         {
             ApplyInputAtBeat(noOpBeat, InputFlags.None);
             _working.Fighters[_attackerIndex].RegisterManiaNoOp();
-            moves.Add(new GeneratedComboMove { Input = InputFlags.None, BeatFrame = noOpBeat, Kind = ComboMoveKind.NoOp });
+            moves.Add(
+                new GeneratedComboMove
+                {
+                    Input = InputFlags.None,
+                    BeatFrame = noOpBeat,
+                    Kind = ComboMoveKind.NoOp,
+                }
+            );
             CaptureBeatSnapshot(beatSnapshots, noOpBeat, beatAfterNoop);
         }
 
@@ -610,12 +645,7 @@ namespace Game.Sim
         /// true and populates <paramref name="hitProps"/> with the BoxProps
         /// of the defender's <c>HitProps</c>.
         /// </summary>
-        private bool TryHit(
-            ref GameState snapshotSource,
-            InputFlags input,
-            Frame windowBeat,
-            out BoxProps hitProps
-        )
+        private bool TryHit(ref GameState snapshotSource, InputFlags input, Frame windowBeat, out BoxProps hitProps)
         {
             hitProps = default;
 
@@ -687,12 +717,14 @@ namespace Game.Sim
         {
             if (!TryHit(ref _beatSnapshot, input, windowBeat, out BoxProps hitProps))
                 return;
-            candidates.Add(new MoveTestResult
-            {
-                Input = input,
-                KnockbackSqr = hitProps.Knockback.sqrMagnitude,
-                Reach = GetReach(input),
-            });
+            candidates.Add(
+                new MoveTestResult
+                {
+                    Input = input,
+                    KnockbackSqr = hitProps.Knockback.sqrMagnitude,
+                    Reach = GetReach(input),
+                }
+            );
         }
 
         /// <summary>Run <see cref="TryHit"/> from
@@ -814,9 +846,7 @@ namespace Game.Sim
                 MoveTestResult c = pool[i];
                 if (hasPrev && !(c.KnockbackSqr > prevKb || c.Reach > prevReach))
                     continue;
-                bool matches = bestIsHeavy
-                    ? (c.Input & InputFlags.HeavyAttack) != 0
-                    : c.KnockbackSqr == bestKb;
+                bool matches = bestIsHeavy ? (c.Input & InputFlags.HeavyAttack) != 0 : c.KnockbackSqr == bestKb;
                 if (matches)
                     eligible[eCount++] = i;
             }

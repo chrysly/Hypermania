@@ -82,12 +82,7 @@ namespace Design.Animation.Keyframing.Editor
                 EditorGUILayout.Vector3Field("Parent Drag (World Δ)", worldDelta);
                 EditorGUILayout.Vector3Field("Parent Drag (Parent-Local Δ)", localDelta);
                 EditorGUILayout.Vector3Field("Offset Applied To Children (-Δ)", childOffset);
-                EditorGUILayout.ObjectField(
-                    "Captured Clip",
-                    _snapshotClip,
-                    typeof(AnimationClip),
-                    false
-                );
+                EditorGUILayout.ObjectField("Captured Clip", _snapshotClip, typeof(AnimationClip), false);
                 EditorGUILayout.IntField("Captured Frame", _snapshotFrame);
             }
 
@@ -101,11 +96,7 @@ namespace Design.Animation.Keyframing.Editor
 
             EditorGUILayout.Space(4);
 
-            using (
-                new EditorGUI.DisabledScope(
-                    _snapshotClip == null || _snapshotClip != state.Clip
-                )
-            )
+            using (new EditorGUI.DisabledScope(_snapshotClip == null || _snapshotClip != state.Clip))
             {
                 if (GUILayout.Button("Apply compensation to direct children"))
                 {
@@ -126,10 +117,7 @@ namespace Design.Animation.Keyframing.Editor
             Transform parent = t.Parent;
             int count = parent != null ? parent.childCount : 0;
 
-            EditorGUILayout.LabelField(
-                $"Direct Children To Compensate ({count})",
-                EditorStyles.boldLabel
-            );
+            EditorGUILayout.LabelField($"Direct Children To Compensate ({count})", EditorStyles.boldLabel);
 
             if (parent == null || count == 0)
             {
@@ -170,9 +158,33 @@ namespace Design.Animation.Keyframing.Editor
 
             foreach (Transform child in parent)
             {
-                ShiftChildAxisFromTime(_snapshotClip, animRoot, child, "m_LocalPosition.x", child.localPosition.x, time, localDelta.x);
-                ShiftChildAxisFromTime(_snapshotClip, animRoot, child, "m_LocalPosition.y", child.localPosition.y, time, localDelta.y);
-                ShiftChildAxisFromTime(_snapshotClip, animRoot, child, "m_LocalPosition.z", child.localPosition.z, time, localDelta.z);
+                ShiftChildAxisFromTime(
+                    _snapshotClip,
+                    animRoot,
+                    child,
+                    "m_LocalPosition.x",
+                    child.localPosition.x,
+                    time,
+                    localDelta.x
+                );
+                ShiftChildAxisFromTime(
+                    _snapshotClip,
+                    animRoot,
+                    child,
+                    "m_LocalPosition.y",
+                    child.localPosition.y,
+                    time,
+                    localDelta.y
+                );
+                ShiftChildAxisFromTime(
+                    _snapshotClip,
+                    animRoot,
+                    child,
+                    "m_LocalPosition.z",
+                    child.localPosition.z,
+                    time,
+                    localDelta.z
+                );
             }
 
             EditorUtility.SetDirty(_snapshotClip);

@@ -382,12 +382,7 @@ namespace Game.Sim
         {
             if (!PendingHitState.HasValue)
                 return;
-            SetState(
-                PendingHitState.Value,
-                PendingHitStateStart.Value,
-                PendingHitStateEnd.Value,
-                PendingHitStateForce
-            );
+            SetState(PendingHitState.Value, PendingHitStateStart.Value, PendingHitStateEnd.Value, PendingHitStateForce);
             PendingHitState = null;
             PendingHitStateStart = null;
             PendingHitStateEnd = null;
@@ -833,9 +828,10 @@ namespace Game.Sim
             if (moveData != null && moveData.ApplyRootMotion)
             {
                 int rmTick = frame - StateStart;
-                SVector2 prevOffset = rmTick > 0
-                    ? options.Players[Index].Character.GetFrameData(State, rmTick - 1).RootMotionOffset
-                    : SVector2.zero;
+                SVector2 prevOffset =
+                    rmTick > 0
+                        ? options.Players[Index].Character.GetFrameData(State, rmTick - 1).RootMotionOffset
+                        : SVector2.zero;
                 SVector2 rmDelta = curData.RootMotionOffset - prevOffset;
                 rmDelta.x *= FacingDir == FighterFacing.Left ? -1 : 1;
                 Position += rmDelta;

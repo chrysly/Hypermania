@@ -46,7 +46,12 @@ namespace Design.Animation.MoveBuilder.Editor
 
             EditorGUILayout.Space(8);
             m.RootMotionSource = (Transform)
-                EditorGUILayout.ObjectField("Root Motion Source (optional)", m.RootMotionSource, typeof(Transform), true);
+                EditorGUILayout.ObjectField(
+                    "Root Motion Source (optional)",
+                    m.RootMotionSource,
+                    typeof(Transform),
+                    true
+                );
             if (GUILayout.Button("Bind Data to Clip"))
                 m.BindDataToClip(state, fighter);
             EditorGUILayout.Space(8);

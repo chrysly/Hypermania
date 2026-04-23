@@ -493,9 +493,7 @@ namespace Game.Sim
                         bool alreadyActive = false;
                         for (int q = 0; q < Projectiles.Length; q++)
                         {
-                            if (Projectiles[q].Active
-                                && Projectiles[q].Owner == i
-                                && Projectiles[q].ConfigIndex == p)
+                            if (Projectiles[q].Active && Projectiles[q].Owner == i && Projectiles[q].ConfigIndex == p)
                             {
                                 alreadyActive = true;
                                 break;
@@ -837,9 +835,11 @@ namespace Game.Sim
             if (projectileIndex < 0 || !Projectiles[projectileIndex].Active)
                 return;
             var projConfigs = options.Players[Projectiles[projectileIndex].Owner].Character.Projectiles;
-            if (projConfigs != null
+            if (
+                projConfigs != null
                 && Projectiles[projectileIndex].ConfigIndex < projConfigs.Count
-                && projConfigs[Projectiles[projectileIndex].ConfigIndex].Lingers)
+                && projConfigs[Projectiles[projectileIndex].ConfigIndex].Lingers
+            )
                 return;
             Projectiles[projectileIndex].MarkedForDestroy = true;
         }
@@ -1043,7 +1043,11 @@ namespace Game.Sim
                     // Add super checking to start a combo so that the combo only starts if the meter is alr at max.
                     // Skip while FreestyleActive so hits landed during freestyle don't refill the draining meter
                     // (and so the activating super hit itself doesn't extend the window past the intended drain).
-                    if (outcome.Kind == HitKind.Hit && GameMode == GameMode.Fighting && !Fighters[attackerBox.Owner].FreestyleActive)
+                    if (
+                        outcome.Kind == HitKind.Hit
+                        && GameMode == GameMode.Fighting
+                        && !Fighters[attackerBox.Owner].FreestyleActive
+                    )
                     {
                         sfloat damage = outcome.Props.Damage;
                         Fighters[attackerBox.Owner].AddSuper(damage, options);
@@ -1199,7 +1203,9 @@ namespace Game.Sim
             if (Fighters[attacker.Owner].FreestyleActive)
             {
                 mult *= options.Global.FreestyleDamageMultiplier;
-                propsForHit.HitstunTicks = (int)((sfloat)propsForHit.HitstunTicks * options.Global.FreestyleHitstunMultiplier);
+                propsForHit.HitstunTicks = (int)(
+                    (sfloat)propsForHit.HitstunTicks * options.Global.FreestyleHitstunMultiplier
+                );
             }
 
             // Consume any accumulated rhythm no-op bonus (1.0 → up to 1.25)

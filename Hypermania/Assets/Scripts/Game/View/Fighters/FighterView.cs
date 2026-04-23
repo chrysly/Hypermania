@@ -86,7 +86,11 @@ namespace Game.View.Fighters
                 int rmTick = frame - state.StateStart;
                 FrameData fd = _characterConfig.GetFrameData(animState, rmTick);
                 float facingSign = state.FacingDir == FighterFacing.Left ? -1f : 1f;
-                Vector3 animWorld = new Vector3((float)fd.RootMotionOffset.x * facingSign, (float)fd.RootMotionOffset.y, 0f);
+                Vector3 animWorld = new Vector3(
+                    (float)fd.RootMotionOffset.x * facingSign,
+                    (float)fd.RootMotionOffset.y,
+                    0f
+                );
                 Vector3 desired = pos;
                 desired.z = transform.position.z;
                 transform.position = desired - animWorld;
