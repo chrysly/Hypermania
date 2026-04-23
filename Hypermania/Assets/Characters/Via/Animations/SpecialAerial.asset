@@ -1823,9 +1823,9 @@ MonoBehaviour:
         KnockdownKind: 0
         Knockback:
           x:
-            rawValue: 1069597030
+            rawValue: 1070721938
           y:
-            rawValue: 1052010096
+            rawValue: 1050885182
         GrabPosition:
           x:
             rawValue: 0
@@ -1908,9 +1908,9 @@ MonoBehaviour:
         KnockdownKind: 0
         Knockback:
           x:
-            rawValue: 1069597030
+            rawValue: 1070721938
           y:
-            rawValue: 1052010096
+            rawValue: 1050885182
         GrabPosition:
           x:
             rawValue: 0
