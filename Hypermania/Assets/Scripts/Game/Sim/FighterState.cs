@@ -99,6 +99,7 @@ namespace Game.Sim
         public BoxProps? HitProps { get; private set; }
         public SVector2? HitLocation { get; private set; }
         public SVector2? ClankLocation { get; private set; }
+        public bool CurrentGrabTechable { get; private set; }
         public bool StateChangedThisRealFrame { get; private set; }
         public bool SuperMaxedThisRealFrame { get; private set; }
         public CharacterState? PostActionState { get; private set; }
@@ -122,6 +123,7 @@ namespace Game.Sim
             && (
                 State == CharacterState.Death
                 || State == CharacterState.Knockdown
+                || State == CharacterState.HeavyKnockdown
                 || State == CharacterState.Hit
                 || State == CharacterState.Grabbed
             );
@@ -448,6 +450,20 @@ namespace Game.Sim
                     return;
                 }
 
+                if (
+                    (State == CharacterState.Knockdown || State == CharacterState.HeavyKnockdown)
+                    && OnGround(options)
+                )
+                {
+                    CharacterConfig config = options.Players[Index].Character;
+                    SetState(
+                        CharacterState.GetUp,
+                        frame,
+                        frame + config.GetHitboxData(CharacterState.GetUp).TotalTicks
+                    );
+                    return;
+                }
+
                 if (OnGround(options))
                 {
                     SetState(CharacterState.Idle, frame, Frame.Infinity);
@@ -634,7 +650,12 @@ namespace Game.Sim
             GameMode gameMode
         )
         {
-            if (State == CharacterState.Hit)
+            if (
+                State == CharacterState.Hit
+                || State == CharacterState.Knockdown
+                || State == CharacterState.HeavyKnockdown
+                || State == CharacterState.GetUp
+            )
             {
                 if (InputH.IsHeld(InputFlags.Burst))
                 {
@@ -914,10 +935,25 @@ namespace Game.Sim
                 return;
             }
 
-            if (State == CharacterState.Knockdown)
+            // Knockdown is entered airborne with StateEnd = Infinity; on the
+            // first grounded frame, latch the downed timer so TickStateMachine
+            // will transition into GetUp when it expires. Guarded on
+            // Frame.Infinity so this doesn't reset the timer every grounded
+            // frame while the fighter is lying down.
+            if (State == CharacterState.Knockdown && StateEnd == Frame.Infinity)
             {
-                // TODO: getup options
-                SetState(CharacterState.Idle, frame, Frame.Infinity);
+                Velocity = SVector2.zero;
+                SetState(CharacterState.Knockdown, frame, frame + options.Global.LightKnockdownTicks, true);
+                return;
+            }
+
+            if (State == CharacterState.HeavyKnockdown && StateEnd == Frame.Infinity)
+            {
+                Velocity = SVector2.zero;
+                // Preserve StateStart so the HeavyKnockdown animation continues
+                // from where it was when the fighter lands — only latch the
+                // downed-timer end frame.
+                StateEnd = frame + options.Global.HeavyKnockdownTicks;
                 return;
             }
 
@@ -1051,6 +1087,9 @@ namespace Game.Sim
                 case KnockdownKind.Light:
                     SetState(CharacterState.Knockdown, frame, Frame.Infinity, true);
                     break;
+                case KnockdownKind.Heavy:
+                    SetState(CharacterState.HeavyKnockdown, frame, Frame.Infinity, true);
+                    break;
             }
 
             // TODO: fixme, just to prevent multi hit
@@ -1068,9 +1107,11 @@ namespace Game.Sim
 
         public void ApplyGrab(Frame frame, BoxProps props, SVector2 hitboxCenter, FighterFacing grabberFacingDir)
         {
+            // only consider the first grab tech property
             if (State != CharacterState.Grabbed)
             {
                 ComboedCount++;
+                CurrentGrabTechable = props.Techable;
             }
             SetState(CharacterState.Grabbed, frame, Frame.Infinity);
             Velocity = SVector2.zero;
@@ -1082,6 +1123,22 @@ namespace Game.Sim
             }
 
             Position = hitboxCenter + grabPos;
+        }
+
+        public void ApplyGrabTech(Frame frame, GameOptions options, SVector2 pushDirection)
+        {
+            SetState(CharacterState.Hit, frame, frame + options.Global.GrabTechStunTicks, true);
+            Velocity = pushDirection * options.Global.GrabTechKnockbackMagnitude;
+            CurrentGrabTechable = false;
+            CancelPendingHitTransition();
+        }
+
+        public void CancelPendingHitTransition()
+        {
+            PendingHitState = null;
+            PendingHitStateStart = null;
+            PendingHitStateEnd = null;
+            PendingHitStateForce = false;
         }
 
         public void ApplyClank(Frame frame, GameOptions options, SVector2 location)

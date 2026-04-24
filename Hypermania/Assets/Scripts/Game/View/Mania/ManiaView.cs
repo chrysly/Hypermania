@@ -17,7 +17,7 @@ namespace Game.View.Mania
     {
         public float ScrollSpeed;
         public Transform[] Anchors;
-        public GameObject[] Notes;
+        public GameObject Note;
         public RectTransform BeatLineContainer;
 
         public void Validate()
@@ -30,9 +30,9 @@ namespace Game.View.Mania
             {
                 throw new InvalidOperationException("Must set note anchors");
             }
-            if (Notes == null || Notes.Length == 0)
+            if (Note == null)
             {
-                throw new InvalidOperationException("Must set note prefabs");
+                throw new InvalidOperationException("Must set note prefab");
             }
         }
     }
@@ -46,8 +46,10 @@ namespace Game.View.Mania
 
         private AudioConfig _audioConfig;
         private List<RectTransform> _beatLinePool;
+        private ManiaArrowSpritePair _innerArrow;
+        private ManiaArrowSpritePair _outerArrow;
 
-        public void Init(AudioConfig audioConfig)
+        public void Init(AudioConfig audioConfig, in SkinConfig skin)
         {
             _audioConfig = audioConfig;
             _activeNotes = new Dictionary<int, ManiaNoteView>();
@@ -78,7 +80,35 @@ namespace Game.View.Mania
                 _beatLinePool.Add(lineRect);
             }
 
+            ApplyArrowSkin(skin);
+
             gameObject.SetActive(false);
+        }
+
+        // Source sprite is authored facing up; rotate the anchor/note to point
+        // Down/Up/Left/Right for channels 0/1/2/3 respectively.
+        private static float GetChannelZRotation(int channel) =>
+            channel switch
+            {
+                0 => 180f,
+                1 => 0f,
+                2 => 90f,
+                _ => -90f,
+            };
+
+        private void ApplyArrowSkin(in SkinConfig skin)
+        {
+            _innerArrow = skin.ManiaInnerArrow;
+            _outerArrow = skin.ManiaOuterArrow;
+            int count = Mathf.Min(Config.Anchors.Length, 4);
+            for (int i = 0; i < count; i++)
+            {
+                ManiaArrowSpritePair pair = i < 2 ? _innerArrow : _outerArrow;
+                Config.Anchors[i].localRotation = Quaternion.Euler(0f, 0f, GetChannelZRotation(i));
+                Config.Anchors[i]
+                    .gameObject.GetComponent<ManiaSpriteSwitcher>()
+                    .ApplySprites(pair.Inactive, pair.Active);
+            }
         }
 
         public void DeInit()
@@ -225,8 +255,11 @@ namespace Game.View.Mania
 
             if (!_activeNotes.ContainsKey(note.Id))
             {
-                GameObject noteObj = Instantiate(Config.Notes[channel], transform, false);
+                GameObject noteObj = Instantiate(Config.Note, transform, false);
+                noteObj.transform.localRotation = Quaternion.Euler(0f, 0f, GetChannelZRotation(channel));
                 noteView = noteObj.GetComponent<ManiaNoteView>();
+                ManiaArrowSpritePair pair = channel < 2 ? _innerArrow : _outerArrow;
+                noteView.ApplySprites(pair.Inactive, pair.Active);
             }
             else
             {

@@ -157,7 +157,7 @@ namespace Game.Sim
             {
                 RealFrame = Frame.FirstFrame,
                 SimFrame = Frame.FirstFrame,
-                RoundStart = Frame.FirstFrame,
+                RoundStart = new Frame(options.Global.PreGameDelayTicks),
                 RoundEnd = new Frame(options.Global.RoundTimeTicks),
                 Fighters = new FighterState[options.Players.Length],
                 Manias = new ManiaState[options.Players.Length],
@@ -232,7 +232,10 @@ namespace Game.Sim
             // RealFrame advance in lockstep during Countdown (SpeedRatio=1, no hitstop),
             // so aligning RealFrame here keeps every subsequent beat transition on-beat.
             var audio = options.Global.Audio;
-            int framesPerWholeNote = audio.FramesPerBeat * 4;
+            // Round 4·Y once instead of Round(Y)·4 — the latter amplifies the
+            // rounding error of FramesPerBeat to ±2 frames; BeatsToFrame(4)
+            // rounds the product a single time and caps drift at ±0.5.
+            int framesPerWholeNote = audio.BeatsToFrame(4);
             int phase =
                 ((RealFrame.No - audio.FirstMusicalBeat.No) % framesPerWholeNote + framesPerWholeNote)
                 % framesPerWholeNote;
@@ -308,6 +311,32 @@ namespace Game.Sim
 
                 InputFlags prev = Fighters[i].InputH.GetInput(0).Flags;
                 remapInputs[i] = new GameInput(remapInputs[i].Flags & prev);
+            }
+        }
+
+        private void HandleGrabTechs(GameOptions options)
+        {
+            int bufferWindow = options.Global.Input.InputBufferWindow;
+            int techWindow = options.Global.GrabTechWindow;
+
+            for (int i = 0; i < Fighters.Length; i++)
+            {
+                if (Fighters[i].State != CharacterState.Grabbed)
+                    continue;
+                if (!Fighters[i].CurrentGrabTechable)
+                    continue;
+                if (SimFrame - Fighters[i].StateStart > techWindow)
+                    continue;
+                if (!Fighters[i].InputH.PressedRecently(InputFlags.Grab, bufferWindow))
+                    continue;
+
+                int j = i ^ 1;
+
+                SVector2 grabbeePush = Fighters[i].Position.x <= Fighters[j].Position.x ? SVector2.left : SVector2.right;
+                SVector2 grabberPush = -grabbeePush;
+
+                Fighters[i].ApplyGrabTech(SimFrame, options, grabbeePush);
+                Fighters[j].ApplyGrabTech(SimFrame, options, grabberPush);
             }
         }
 
@@ -455,6 +484,8 @@ namespace Game.Sim
             {
                 Fighters[i].ApplyActiveState(SimFrame, options, options.Players[i].Character, rhythmCancel, GameMode);
             }
+
+            HandleGrabTechs(options);
 
             for (int i = 0; i < Fighters.Length; i++)
             {
@@ -990,6 +1021,22 @@ namespace Game.Sim
                         }
                     }
 
+                    // If the fighter that just took this hit is currently
+                    // running their own rhythm combo (as the attacker), tear
+                    // the combo down. Incoming hitstun/knockback from
+                    // ApplyHit already landed; we only need to unwind the
+                    // combo state so inputs stop firing and the opponent
+                    // leaves locked hitstun.
+                    if (outcome.Kind == HitKind.Hit && Manias[owners.Item2].Enabled(RealFrame))
+                    {
+                        Manias[owners.Item2].End();
+                        GameMode = GameMode.Fighting;
+                        ClearLockedHitstun();
+                        Fighters[owners.Item2].RhythmComboFinisherActive = false;
+                        Fighters[owners.Item2].RhythmComboTier2 = false;
+                        Fighters[owners.Item2].ResetNoOpBonus();
+                    }
+
                     //to start a rhythm combo, we must sure that the move was not traded
                     if (
                         options.Players[owners.Item1].ComboMode == ComboMode.Rhythm
@@ -1166,9 +1213,33 @@ namespace Game.Sim
 
             if (attacker.Data.Kind == HitboxKind.Grabbox)
             {
+                bool grabsGrounded = attacker.Data.GrabsGrounded;
+                bool grabsAirborne = attacker.Data.GrabsAirborne;
+                // Legacy fallback: grabboxes authored before these flags existed load as
+                // both-false. Treat that as "grabs both" — a grab that can never connect
+                // is a nonsense configuration, so the sentinel is safe to repurpose.
+                if (!grabsGrounded && !grabsAirborne)
+                {
+                    grabsGrounded = true;
+                    grabsAirborne = true;
+                }
+                bool defenderGrounded = Fighters[defender.Owner].Location == FighterLocation.Grounded;
+                if (defenderGrounded ? !grabsGrounded : !grabsAirborne)
+                {
+                    return new HitOutcome { Kind = HitKind.None };
+                }
+
                 Fighters[defender.Owner]
                     .ApplyGrab(SimFrame, attacker.Data, attacker.Box.Pos, Fighters[attacker.Owner].FacingDir);
+
+                FighterFacing grabberFacingBefore = Fighters[attacker.Owner].FacingDir;
                 Fighters[attacker.Owner].ProcessHit(SimFrame, attacker.Data, options.Players[attacker.Owner].Character);
+                if (Fighters[attacker.Owner].FacingDir != grabberFacingBefore)
+                {
+                    Fighters[defender.Owner].FacingDir =
+                        Fighters[defender.Owner].FacingDir == FighterFacing.Right ? FighterFacing.Left : FighterFacing.Right;
+                }
+
                 return new HitOutcome { Kind = HitKind.Grabbed, Props = attacker.Data };
             }
 
@@ -1212,6 +1283,16 @@ namespace Game.Sim
             // so it applies exactly once, to the next attack that lands after
             // one or more no-op beats in the current mania.
             mult *= Fighters[attacker.Owner].ConsumeNoOpBonus();
+
+            if (options.Players[attacker.Owner].ManiaDifficulty == ManiaDifficulty.Normal)
+                mult *= options.Global.NormalDifficultyDamageMultiplier;
+
+            if (Manias[attacker.Owner].Enabled(RealFrame))
+            {
+                propsForHit.KnockdownKind = Fighters[attacker.Owner].RhythmComboFinisherActive
+                    ? KnockdownKind.Heavy
+                    : KnockdownKind.None;
+            }
 
             HitOutcome outcome = Fighters[defender.Owner]
                 .ApplyHit(
