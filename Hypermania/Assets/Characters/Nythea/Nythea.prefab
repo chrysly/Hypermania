@@ -1013,8 +1013,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RootBone: {fileID: 4217807302454724545}
   m_BoneTransforms:
-  - {fileID: 2468958989049223621}
   - {fileID: 6655980460830819818}
+  - {fileID: 2468958989049223621}
   - {fileID: 9036228951205760821}
   m_Bounds:
     m_Center: {x: 1.8196875, y: 23.623337, z: 0}
@@ -4776,7 +4776,7 @@ SpriteRenderer:
   m_SortingLayerID: -1444139175
   m_SortingLayer: -2
   m_SortingOrder: 31
-  m_Sprite: {fileID: 9189316053482504771, guid: 5191505ea43786cde9d3772de12b2e4f, type: 3}
+  m_Sprite: {fileID: -8514005501382270306, guid: 5191505ea43786cde9d3772de12b2e4f, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -4821,7 +4821,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_CategoryHash: 0.00000070661537
-  m_labelHash: 0.000000062380415
+  m_labelHash: 2.0541914e-20
   m_SpriteKey: 0
   m_SpriteHash: 967572400
 --- !u!114 &1871604986726785324
